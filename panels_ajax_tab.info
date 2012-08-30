@@ -1,0 +1,8 @@
+name = Panels AJAX tabs
+description = Allows the display of multiple mini-panes inside a panel as AJAX tabs
+core = 7.x
+dependencies[] = panels
+dependencies[] = panels_mini
+package = Panels
+files[] = panels_ajax_tab.module
+

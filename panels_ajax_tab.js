@@ -22,6 +22,10 @@
           })
           .css('cursor','pointer')
           .addClass('panels-ajax-tabs-processed');
+        // Trigger a click event on the first tab to load it
+        $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)').first()
+          .trigger('click')
+          .addClass('panels-ajax-tabs-first-loaded');
       });
     }
   };

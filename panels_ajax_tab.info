@@ -3,6 +3,7 @@ description = Allows the display of multiple mini-panes inside a panel as AJAX t
 core = 7.x
 dependencies[] = panels
 dependencies[] = panels_mini
+dependencies[] = jquery_update
 package = Panels
 files[] = panels_ajax_tab.module
 

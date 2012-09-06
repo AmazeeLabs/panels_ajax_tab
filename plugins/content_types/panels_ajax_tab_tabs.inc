@@ -40,9 +40,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts){
   }
 
   // Render the tabs
-  if ($conf['display_tabs'] || !isset($conf['display_tabs'])) {
-    $block->content .= theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string));
-  }
+  $block->content .= theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string));
 
   return $block;
 }

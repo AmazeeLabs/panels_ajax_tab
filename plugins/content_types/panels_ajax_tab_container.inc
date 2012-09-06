@@ -40,17 +40,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   }
 
   // Get the tab-container-id
-  if ($conf['container_id'] && !$conf['diplay_tabs']) {
-    $tab_container_id = $conf['container_id'];
-  }
-  else {
-    $tab_container_id = $default_tab_container_id;
-  }
-
-  // Render the tabs
-  if ($conf['display_tabs'] || !isset($conf['display_tabs'])) {
-    $block->content .= theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $tab_container_id, 'context_string' => $context_string));
-  }
+  $tab_container_id = $conf['container_id'];
 
   // Render the container
   $block->content .= theme('panels_ajax_tab_container', array('minipanels' => $minipanels, 'tab_container_id' => $tab_container_id, 'context_string' => $context_string));
@@ -70,24 +60,6 @@ function panels_ajax_tab_container_edit_form($form, &$form_state){
     $options[$panel->name] = $panel->admin_title;
   }
 
-
-  $form['display_tabs'] = array(
-    '#title' => t('Display Tabs'),
-    '#type' => 'checkbox',
-    '#default_value' => isset($conf['display_tabs']) ? $conf['display_tabs'] : 1,
-  );
-  $form['mini_panels'] = array(
-    '#title' => t('Mini Panels'),
-    '#type' => 'checkboxes',
-    '#options' => $options,
-    '#description' => 'Select the Mini Panels to be used as AJAX tabs',
-    '#default_value' => $conf['mini_panels'],
-    '#states' => array(
-      'invisible' => array(
-        ':input[name="display_tabs"]' => array('checked' => FALSE),
-      ),
-    )
-  );
   $form['container_id'] = array(
     '#title' => t('Container ID'),
     '#type' => 'textfield',
@@ -104,7 +76,5 @@ function panels_ajax_tab_container_edit_form($form, &$form_state){
 }
 
 function panels_ajax_tab_container_edit_form_submit(&$form, &$form_state){
-  $form_state['conf']['mini_panels'] = array_filter($form_state['values']['mini_panels']);
-  $form_state['conf']['display_tabs'] = $form_state['values']['display_tabs'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
 }

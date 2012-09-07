@@ -24,9 +24,8 @@
           .addClass('panels-ajax-tabs-processed');
 
         // Trigger a click event on the first tab to load it
-        $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)', context).first()
-          .trigger('click')
-          .addClass('panels-ajax-tabs-first-loaded');
+        $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)', context).first().trigger('click');
+        $('.panels-ajax-tab-tab').addClass('panels-ajax-tabs-first-loaded', context);
       });
     }
   };

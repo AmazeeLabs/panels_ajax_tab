@@ -116,6 +116,7 @@ function theme_panels_ajax_tab_container($vars) {
 function theme_panels_ajax_tab_ajax($vars) {
   $mini = $vars['minipanel'];
   $layout = panels_get_layout($mini->display->layout);
+  $panels_output = panels_render_display($mini->display);
 
   $output  = '';
   $output .= '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -139,7 +140,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   $output .= "<link rel='stylesheet' type='text/css' href='".base_path().$layout['path'].'/'.$layout['css']."' />";
   $output .= '</head>';
   $output .= '<body>';
-  $output .= panels_render_display($mini->display);
+  $output .= $panels_output;
   $output .= '</body></html>';
   return $output;
 }

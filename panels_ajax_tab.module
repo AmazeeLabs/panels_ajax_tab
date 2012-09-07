@@ -88,8 +88,6 @@ function panels_ajax_tab_ajax($panel_name, $context_string) {
     return;
   }
 
-  $mini->display->args = $panel_args;
-  $mini->display->css_id = panels_mini_get_id($subtype);
   $mini->display->owner = $mini;
   // unique ID of this mini.
   $mini->display->owner->id = $mini->name;

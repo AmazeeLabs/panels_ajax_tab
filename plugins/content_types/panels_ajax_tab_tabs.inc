@@ -29,7 +29,8 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts){
   }
   else {
     $entity_type = $contexts[0]->type[2];
-    $entity_id = array_shift(entity_extract_ids($entity_type, $contexts[0]->data));
+    $entity_ids = entity_extract_ids($entity_type, $contexts[0]->data);
+    $entity_id = array_shift($entity_ids);
     $context_string = $entity_type . ':' . $entity_id;
   }
 

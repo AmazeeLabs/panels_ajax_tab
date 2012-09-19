@@ -133,14 +133,24 @@ function theme_panels_ajax_tab_ajax($vars) {
     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
     xmlns:mml="http://www.w3.org/1998/Math/MathML">
   ';
-  $output .= '<head>';
-  $output .= drupal_get_js();
-  $output .= drupal_get_css();
 
+  $output .= '<head>';
+
+  // Get the javascript and filter out the default misc/drupal.js - it's already been added by the calling page
+  $javascript = drupal_add_js();
+  unset($javascript['misc/drupal.js']);
+  $output .= drupal_get_js('header', $javascript);
+
+  // Add CSS
+  $output .= drupal_get_css();
   $output .= "<link rel='stylesheet' type='text/css' href='".base_path().$layout['path'].'/'.$layout['css']."' />";
+
   $output .= '</head>';
+
+  // Print the output of the panel
   $output .= '<body>';
   $output .= $panels_output;
   $output .= '</body></html>';
+
   return $output;
 }

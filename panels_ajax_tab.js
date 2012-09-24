@@ -7,15 +7,21 @@
       $(function() {
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context)
           .click(function(){
+            var container      = $(this).parents('.panels-ajax-tab:first');
+            if ($(container).data('loading') === true) return true;
+            $(container).data('loading', true);
+
             var target_id      = $(this).data('target-id');
             var panel_name     = $(this).data('panel-name');
             var entity_context = $(this).data('entity-context');
             $.ajax({
               url: '/panels_ajax_tab/' + panel_name + '/' + entity_context,
-              datatype:'html'
+              datatype:'html',
+              cache: true
             }).done(function(data) {
               $('#panels-ajax-tab-container-' + target_id).html(data);
               Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id));
+              $(container).data('loading', false);
             });
             $(this).parent().siblings().removeClass('active');
             $(this).parent().addClass('active');

@@ -16,7 +16,7 @@
           var panel_name = $(this).data('panel-name');
           var entity_context = $(this).data('entity-context');
           $.ajax({
-            url: Drupal.settings.basePath + '/panels_ajax_tab/' + panel_name + '/' + entity_context,
+            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context,
             datatype: 'html',
             cache: true,
             beforeSend: function(xhr) {

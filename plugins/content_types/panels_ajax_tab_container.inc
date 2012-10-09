@@ -35,17 +35,11 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
     $context_string = $entity_type . ':' . $entity_id;
   }
 
-  // Load the mini-panels
-  $minipanels = array();
-  foreach ($conf['mini_panels'] as $panel_name) {
-    $minipanels[] = panels_mini_load($panel_name);
-  }
-
   // Get the tab-container-id
   $tab_container_id = $conf['container_id'];
 
   // Render the container
-  $block->content .= theme('panels_ajax_tab_container', array('minipanels' => $minipanels, 'tab_container_id' => $tab_container_id, 'context_string' => $context_string));
+  $block->content .= theme('panels_ajax_tab_container', array('tab_container_id' => $tab_container_id, 'context_string' => $context_string));
 
   $default_tab_container_id++;
 

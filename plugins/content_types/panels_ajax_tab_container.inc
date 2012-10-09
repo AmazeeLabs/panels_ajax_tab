@@ -12,16 +12,18 @@ $plugin = array(
   'edit form'        => 'panels_ajax_tab_container_edit_form'
 );
 
-function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contexts){
+function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contexts) {
   static $default_tab_container_id = 0;
   ctools_include('context');
   ctools_include('plugins', 'panels');
   $block = new stdClass();
-  $block->title ='';
+  $block->title = '';
   $block->content = '';
 
   // Add required JavaScript and CSS
-  drupal_add_js(drupal_get_path('module','panels_ajax_tab') . '/panels_ajax_tab.js');
+  $path = drupal_get_path('module', 'panels_ajax_tab');
+  drupal_add_js(array('panel_ajax_tab' => array('path' => $path)), 'setting');
+  drupal_add_js($path . '/js/panels_ajax_tab.js');
 
   // Generate the context string
   if (!$contexts[0]->data) {
@@ -50,7 +52,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   return $block;
 }
 
-function panels_ajax_tab_container_edit_form($form, &$form_state){
+function panels_ajax_tab_container_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
 
   $panels = panels_mini_load_all();
@@ -75,6 +77,6 @@ function panels_ajax_tab_container_edit_form($form, &$form_state){
   return $form;
 }
 
-function panels_ajax_tab_container_edit_form_submit(&$form, &$form_state){
+function panels_ajax_tab_container_edit_form_submit(&$form, &$form_state) {
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
 }

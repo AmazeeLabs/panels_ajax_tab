@@ -49,6 +49,9 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
     'panels_ajax_tab_ajax' => array(
       'variables' => array('minipanel' => NULL),
     ),
+    'panels_ajax_tab_container_edit_form' => array(
+      'render element' => 'form',
+    ),
   );
 }
 
@@ -154,5 +157,28 @@ function theme_panels_ajax_tab_ajax($vars) {
   $output .= '</div>';
   $output .= '</body></html>';
 
+  return $output;
+}
+
+
+function theme_panels_ajax_tab_container_edit_form($variables) {
+  $form = $variables['form'];
+  $rows = array();
+  foreach(element_children($form['mini_panels']) as $mini_panel) {
+    $form['mini_panels'][$mini_panel]['weight']['#attributes']['class'] = array('panel-weight');
+    $rows[] = array(
+      'data' => array(
+        drupal_render($form['mini_panels'][$mini_panel]['selected']),
+        drupal_render($form['mini_panels'][$mini_panel]['name']),
+        drupal_render($form['mini_panels'][$mini_panel]['weight']),
+      ),
+      'class' => array('draggable'),
+    );
+
+  }
+  $header = array(t('Select'), t('Mini panel name'), t('Weight'));
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'mini-panels-table')));
+  $output .= drupal_render_children($form);
+  drupal_add_tabledrag('mini-panels-table', 'order', 'sibling', 'panel-weight');
   return $output;
 }

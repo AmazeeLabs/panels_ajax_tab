@@ -51,19 +51,30 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
 
   $panels = panels_mini_load_all();
 
-  $options = array();
-  foreach ($panels as $panel) {
-    $options[$panel->name] = $panel->admin_title;
+  dsm($conf);
+  $form['mini_panels']['#tree'] = TRUE;
+  foreach ($panels as $mini_panel) {
+    $form['mini_panels'][$mini_panel->name] = array(
+
+      'selected' => array(
+        '#type' => 'checkbox',
+        '#default_value' => $conf['mini_panels'][$mini_panel->name]['selected'],
+      ),
+
+      'name' => array(
+        '#markup' => $mini_panel->admin_title,
+      ),
+
+      'weight' => array(
+        '#type' => 'weight',
+        '#title' => t('Weight'),
+        '#default_value' => $conf['mini_panels'][$mini_panel->name]['weight'],
+        '#delta' => 10,
+        '#title-display' => 'invisible',
+      ),
+    );
   }
 
-  $form['mini_panels'] = array(
-    '#title' => t('Mini Panels'),
-    '#type' => 'checkboxes',
-    '#options' => $options,
-    '#description' => 'Select the Mini Panels to be used as AJAX tabs',
-    '#default_value' => $conf['mini_panels'],
-    '#required' => TRUE,
-  );
   $form['container_id'] = array(
     '#title' => t('Container ID'),
     '#type' => 'textfield',
@@ -71,11 +82,13 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#default_value' => $conf['container_id'],
     '#required' => TRUE,
   );
+  $form['#theme'] = array('panels_ajax_tab_container_edit_form');
 
   return $form;
 }
 
 function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
-  $form_state['conf']['mini_panels'] = array_filter($form_state['values']['mini_panels']);
+  dsm($form_state);
+  $form_state['conf']['mini_panels'] = $form_state['values']['mini_panels'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
 }

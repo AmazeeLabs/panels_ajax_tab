@@ -22,6 +22,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
 
   // Add required JavaScript and CSS
   drupal_add_js(drupal_get_path('module', 'panels_ajax_tab') . '/js/panels_ajax_tab.js');
+  drupal_add_css(drupal_get_path('module','panels_ajax_tab') . '/css/panels_ajax_tab.css');
 
   // Generate the context string
   if (!$contexts[0]->data) {

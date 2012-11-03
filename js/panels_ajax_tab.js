@@ -43,7 +43,7 @@
           datatype: 'html',
           cache: true,
           beforeSend: function(xhr) {
-            $('#panels-ajax-tab-container-' + target_id).html('<img src="' + Drupal.settings.basePath + Drupal.settings.panel_ajax_tab.path + '/images/loading.gif"/>');
+            $('#panels-ajax-tab-container-' + target_id).html('<img class="loading" src="' + Drupal.settings.basePath + Drupal.settings.panel_ajax_tab.path + '/images/loading.gif"/>');
           },
           error: function(jqXHR, textStatus, errorThrown) {
             $('#panels-ajax-tab-container-' + target_id).html('Error: ' + errorThrown);

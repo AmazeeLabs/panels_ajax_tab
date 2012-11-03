@@ -34,10 +34,13 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
     $context_string = $entity_type . ':' . $entity_id;
   }
 
-  // Load the mini-panels
+  // sort and load the mini-panels
   $minipanels = array();
-  foreach ($conf['mini_panels'] as $panel_name) {
-    $minipanels[] = panels_mini_load($panel_name);
+  uasort($conf['mini_panels'], function($a,$b) { return $a['weight'] - $b['weight']; });
+  foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
+    if ($panel_conf['selected']) {
+      $minipanels[] = panels_mini_load($panel_name);
+    }
   }
 
   // Render the tabs

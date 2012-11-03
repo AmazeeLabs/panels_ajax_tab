@@ -50,25 +50,29 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
 
   $panels = panels_mini_load_all();
+  foreach($panels as $panel_name => $panel) {
+    $panels[$panel_name] = (array) $panel;
+    $panels[$panel_name] = array_merge($panels[$panel_name],$conf['mini_panels'][$panel_name]);
+  }
 
-  dsm($conf);
+  uasort($panels, function($a,$b) { return $a['weight'] - $b['weight'];});
   $form['mini_panels']['#tree'] = TRUE;
   foreach ($panels as $mini_panel) {
-    $form['mini_panels'][$mini_panel->name] = array(
+    $form['mini_panels'][$mini_panel['name']] = array(
 
       'selected' => array(
         '#type' => 'checkbox',
-        '#default_value' => $conf['mini_panels'][$mini_panel->name]['selected'],
+        '#default_value' => $mini_panel['selected'],
       ),
 
       'name' => array(
-        '#markup' => $mini_panel->admin_title,
+        '#markup' => $mini_panel['admin_title'],
       ),
 
       'weight' => array(
         '#type' => 'weight',
         '#title' => t('Weight'),
-        '#default_value' => $conf['mini_panels'][$mini_panel->name]['weight'],
+        '#default_value' => $mini_panel['weight'],
         '#delta' => 10,
         '#title-display' => 'invisible',
       ),
@@ -88,7 +92,6 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
 }
 
 function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
-  dsm($form_state);
   $form_state['conf']['mini_panels'] = $form_state['values']['mini_panels'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
 }

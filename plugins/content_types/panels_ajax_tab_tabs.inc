@@ -2,6 +2,8 @@
 
 $plugin = array(
   'title'            => t('AJAX Tab - Tabs'),
+  'admin title'      => 'panels_ajax_tab_tabs_content_type_admin_title',
+  'admin info'       => 'panels_ajax_tab_tabs_content_type_admin_info',
   'description'      => t('List of Tabs to control a container'),
   'single'           => TRUE,
   'category'         => t('AJAX Tabs'),
@@ -48,6 +50,22 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   $block->content .= theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string));
 
   return $block;
+}
+
+/**
+ * Provide the administrative title of a Ajax tab.
+ */
+function panels_ajax_tab_tabs_content_type_admin_title($subtype, $conf) {
+  
+  return "Ajax Tab - " . $conf['container_id'];
+}
+
+/**
+ * Display the administrative information for a Ajax tab .
+ */
+function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf) {
+  $context =  $conf['context'];
+  return panels_ajax_tab_tabs_render($subtype, $conf, array(), $context);
 }
 
 function panels_ajax_tab_tabs_edit_form($form, &$form_state) {

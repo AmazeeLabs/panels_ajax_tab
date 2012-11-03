@@ -2,15 +2,24 @@
 
 $plugin = array(
   'title'            => t('AJAX Tab - Container'),
+  'admin title'      => 'panels_ajax_tab_container_content_type_admin_title',
   'description'      => t('The AJAX content will be loaded within this pane'),
   'single'           => TRUE,
-  'category'         => t('AJAX Tabs'),
+  'category'         => t('AJAX Container'),
   'required context' => array(
     new ctools_context_optional(t('Entity Context'), 'entity'),
   ),
   'render callback'  => 'panels_ajax_tab_container_render',
   'edit form'        => 'panels_ajax_tab_container_edit_form'
 );
+
+/**
+ * Provide the administrative title of a Ajax tab container.
+ */
+function panels_ajax_tab_container_content_type_admin_title($subtype, $conf) {
+  
+  return "Ajax Tab Container - " . $conf['container_id'];
+}
 
 function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contexts) {
   static $default_tab_container_id = 0;

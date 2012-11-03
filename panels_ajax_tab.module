@@ -163,7 +163,18 @@ function theme_panels_ajax_tab_ajax($vars) {
 
 function theme_panels_ajax_tab_container_edit_form($variables) {
   $form = $variables['form'];
+  $output = '';
+  // Render elements that are supposed to be on top.
+  foreach(element_children($form) as $element) {
+    if($element == 'mini_panels') {
+      break;
+    }
+    else {
+     $output .= drupal_render($form[$element]);
+    }
+  }
   $rows = array();
+
   foreach(element_children($form['mini_panels']) as $mini_panel) {
     $form['mini_panels'][$mini_panel]['weight']['#attributes']['class'] = array('panel-weight');
     $rows[] = array(
@@ -177,7 +188,7 @@ function theme_panels_ajax_tab_container_edit_form($variables) {
 
   }
   $header = array(t('Select'), t('Mini panel name'), t('Weight'));
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'mini-panels-table')));
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'mini-panels-table')));
   $output .= drupal_render_children($form);
   drupal_add_tabledrag('mini-panels-table', 'order', 'sibling', 'panel-weight');
   return $output;

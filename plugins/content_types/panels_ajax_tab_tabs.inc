@@ -51,14 +51,15 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
 
 function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
-
   $panels = panels_mini_load_all();
   foreach($panels as $panel_name => $panel) {
     $panels[$panel_name] = (array) $panel;
-    $panels[$panel_name] = array_merge($panels[$panel_name],$conf['mini_panels'][$panel_name]);
+    $panels[$panel_name] = empty($conf['mini_panels'][$panel_name]) ? $panels[$panel_name] : array_merge($panels[$panel_name],$conf['mini_panels'][$panel_name]);
+  }
+  if(!empty($conf['mini_panels'][$panel_name])) {
+    uasort($panels, function($a,$b) { return $a['weight'] - $b['weight'];});
   }
 
-  uasort($panels, function($a,$b) { return $a['weight'] - $b['weight'];});
   $form['mini_panels']['#tree'] = TRUE;
   foreach ($panels as $mini_panel) {
     $form['mini_panels'][$mini_panel['name']] = array(
@@ -89,7 +90,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#default_value' => $conf['container_id'],
     '#required' => TRUE,
   );
-  $form['#theme'] = array('panels_ajax_tab_container_edit_form');
+  $form['#theme'] = array('panels_ajax_tab_tabs_edit_form');
 
   return $form;
 }

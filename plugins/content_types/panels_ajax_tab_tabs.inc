@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @file
+ * Contains the content type plugin for a Ajax tabs.
+ *
+ */
+
 $plugin = array(
   'title'            => t('AJAX Tab - Tabs'),
   'admin title'      => 'panels_ajax_tab_tabs_content_type_admin_title',
@@ -24,7 +30,8 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
 
   // Add required JavaScript and CSS
   drupal_add_js(drupal_get_path('module', 'panels_ajax_tab') . '/js/panels_ajax_tab.js');
-  drupal_add_css(drupal_get_path('module','panels_ajax_tab') . '/css/panels_ajax_tab.css');
+  drupal_add_css(drupal_get_path('module', 'panels_ajax_tab') . '/css/panels_ajax_tab.css');
+
 
   // Generate the context string
   if (!$contexts[0]->data) {
@@ -39,7 +46,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
 
   // sort and load the mini-panels
   $minipanels = array();
-  uasort($conf['mini_panels'], function($a,$b) { return $a['weight'] - $b['weight']; });
+  uasort($conf['mini_panels'], function($a, $b) { return $a['weight'] - $b['weight']; });
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
       $minipanels[] = panels_mini_load($panel_name);
@@ -63,20 +70,38 @@ function panels_ajax_tab_tabs_content_type_admin_title($subtype, $conf) {
 /**
  * Display the administrative information for a Ajax tab .
  */
-function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf) {
-  $context =  $conf['context'];
-  return panels_ajax_tab_tabs_render($subtype, $conf, array(), $context);
+function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf, $contexts) {
+  //return panels_ajax_tab_tabs_render($subtype, $conf, array(), $contexts);
+
+  $data = new stdClass();
+  $data->content = '';
+  $data->title = 'Tabs selected - ';
+
+  // sort and load the mini-panels
+  $minipanels = array();
+  uasort($conf['mini_panels'], function($a, $b) { return $a['weight'] - $b['weight']; });
+  foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
+    if ($panel_conf['selected']) {
+      $minipanels[] = panels_mini_load($panel_name);
+    }
+  }
+
+  $content = '';
+  $context_string = 'none';
+  $data->content = theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string));
+
+  return $data;
 }
 
 function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
   $panels = panels_mini_load_all();
-  foreach($panels as $panel_name => $panel) {
+  foreach ($panels as $panel_name => $panel) {
     $panels[$panel_name] = (array) $panel;
-    $panels[$panel_name] = empty($conf['mini_panels'][$panel_name]) ? $panels[$panel_name] : array_merge($panels[$panel_name],$conf['mini_panels'][$panel_name]);
+    $panels[$panel_name] = empty($conf['mini_panels'][$panel_name]) ? $panels[$panel_name] : array_merge($panels[$panel_name], $conf['mini_panels'][$panel_name]);
   }
-  if(!empty($conf['mini_panels'][$panel_name])) {
-    uasort($panels, function($a,$b) { return $a['weight'] - $b['weight'];});
+  if (!empty($conf['mini_panels'][$panel_name])) {
+    uasort($panels, function($a, $b) { return $a['weight'] - $b['weight'];});
   }
 
   $form['mini_panels']['#tree'] = TRUE;

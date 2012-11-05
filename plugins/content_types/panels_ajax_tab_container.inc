@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @file
+ * Contains the content type plugin for a Ajax tabs container.
+ *
+ */
+
 $plugin = array(
   'title'            => t('AJAX Tab - Container'),
   'admin title'      => 'panels_ajax_tab_container_content_type_admin_title',

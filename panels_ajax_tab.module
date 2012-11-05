@@ -27,7 +27,7 @@ function panels_ajax_tab_menu() {
     'title' => 'panels-ajax tab AJAX callback',
     'description' => 'AHAJ callback for panels tabs',
     'page callback' => 'panels_ajax_tab_ajax',
-    'page arguments' => array(1,2),
+    'page arguments' => array(1, 2),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -107,7 +107,7 @@ function panels_ajax_tab_ajax($panel_name, $context_string) {
 
 function theme_panels_ajax_tab_tabs($vars) {
   foreach ($vars['minipanels'] as $mini) {
-    $tabs[] = '<a href="#" class="panels-ajax-tab-tab" data-panel-name="'.$mini->name.'" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '">' . $mini->admin_title . '</a>';
+    $tabs[] = '<a href="#" class="panels-ajax-tab-tab" data-panel-name="' . $mini->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '">' . $mini->admin_title . '</a>';
   }
   return theme('item_list', array('items' => $tabs, 'attributes' => array('class' => array('tabs', 'inline', 'panels-ajax-tab'))));
 }
@@ -145,14 +145,14 @@ function theme_panels_ajax_tab_ajax($vars) {
 
   // Add CSS
   $output .= drupal_get_css();
-  $output .= "<link rel='stylesheet' type='text/css' href='".base_path().$layout['path'].'/'.$layout['css']."' />";
+  $output .= "<link rel='stylesheet' type='text/css' href='" . base_path() . $layout['path'] . '/' . $layout['css'] . "' />";
 
   $output .= '</head>';
 
   // Print the output of the panel
   $output .= '<body>';
   $output .= theme('status_messages');
-  $output .= '<div class="panels-ajax-tab-panel panels-ajax-tab-panel-'.str_replace('_', '-', $mini->name).'">';
+  $output .= '<div class="panels-ajax-tab-panel panels-ajax-tab-panel-' . str_replace('_', '-', $mini->name) . '">';
   $output .= $panels_output;
   $output .= '</div>';
   $output .= '</body></html>';
@@ -165,8 +165,8 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
   $form = $variables['form'];
   $output = '';
   // Render elements that are supposed to be on top.
-  foreach(element_children($form) as $element) {
-    if($element == 'mini_panels') {
+  foreach (element_children($form) as $element) {
+    if ($element == 'mini_panels') {
       break;
     }
     else {
@@ -175,7 +175,7 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
   }
   $rows = array();
 
-  foreach(element_children($form['mini_panels']) as $mini_panel) {
+  foreach (element_children($form['mini_panels']) as $mini_panel) {
     $form['mini_panels'][$mini_panel]['weight']['#attributes']['class'] = array('panel-weight');
     $rows[] = array(
       'data' => array(

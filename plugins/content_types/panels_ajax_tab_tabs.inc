@@ -46,7 +46,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
 
   // sort and load the mini-panels
   $minipanels = array();
-  uasort($conf['mini_panels'], function($a, $b) { return $a['weight'] - $b['weight']; });
+  uasort($conf['mini_panels'], 'panels_ajax_tab_compare_weight');
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
       $minipanels[] = panels_mini_load($panel_name);
@@ -63,7 +63,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
  * Provide the administrative title of a Ajax tab.
  */
 function panels_ajax_tab_tabs_content_type_admin_title($subtype, $conf) {
-  
+
   return "Ajax Tab - " . $conf['container_id'];
 }
 
@@ -79,7 +79,7 @@ function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf, $contexts
 
   // sort and load the mini-panels
   $minipanels = array();
-  uasort($conf['mini_panels'], function($a, $b) { return $a['weight'] - $b['weight']; });
+  uasort($conf['mini_panels'], 'panels_ajax_tab_compare_weight');
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
       $minipanels[] = panels_mini_load($panel_name);
@@ -100,8 +100,8 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     $panels[$panel_name] = (array) $panel;
     $panels[$panel_name] = empty($conf['mini_panels'][$panel_name]) ? $panels[$panel_name] : array_merge($panels[$panel_name], $conf['mini_panels'][$panel_name]);
   }
-  if (!empty($conf['mini_panels'][$panel_name])) {
-    uasort($panels, function($a, $b) { return $a['weight'] - $b['weight'];});
+  if (!empty($conf['mini_panels'])) {
+    uasort($panels, 'panels_ajax_tab_compare_weight');
   }
 
   $form['mini_panels']['#tree'] = TRUE;

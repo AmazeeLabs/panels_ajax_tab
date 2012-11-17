@@ -193,3 +193,10 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
   drupal_add_tabledrag('mini-panels-table', 'order', 'sibling', 'panel-weight');
   return $output;
 }
+
+/**
+ * compare callback to sort panels based on weight
+ */
+function panels_ajax_tab_compare_weight($a, $b) {
+  return $a['weight'] - $b['weight'];
+}

@@ -1,5 +1,4 @@
 .loading {
-  position:relative;
-  left:50%;
-  top:50%;
+  display: block;
+  margin: 0 auto;
 }

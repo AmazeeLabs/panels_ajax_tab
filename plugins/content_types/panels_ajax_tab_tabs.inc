@@ -32,7 +32,6 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   drupal_add_js(drupal_get_path('module', 'panels_ajax_tab') . '/js/panels_ajax_tab.js');
   drupal_add_css(drupal_get_path('module', 'panels_ajax_tab') . '/css/panels_ajax_tab.css');
 
-
   // Generate the context string
   if (!$contexts[0]->data) {
     $context_string = 'none';
@@ -43,18 +42,45 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
     $entity_id = array_shift($entity_ids);
     $context_string = $entity_type . ':' . $entity_id;
   }
+  
+  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
+  $clean_url = $settings['clean_url'];
 
   // sort and load the mini-panels
-  $minipanels = array();
+  $tabs = array();
   uasort($conf['mini_panels'], 'panels_ajax_tab_compare_weight');
+  $i = 0;
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
-      $minipanels[] = panels_mini_load($panel_name);
+      
+      // Set the URL ID - note the first one never has one regardless of what has been set
+      if ($i) $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $mini->name;
+      else $url_id = '';
+      
+      if (!$url_id) {
+        $href = url($_GET['q']);
+      }
+      else if ($clean_url) {
+        $href = url($_GET['q']) . '/' . $url_id;
+      }
+      else {
+        $href = url($_GET['q']) . '#' . $url_id;
+      }
+      
+      $mini = panels_mini_load($panel_name);
+      $tabs[] = array(
+        'mini_panel' => $mini, 
+        'title' => $panel_conf['tab_title'] ? $panel_conf['tab_title'] : $mini->admin_title,
+        'url_id' => $url_id, 
+        'href' => $href
+      );
+      
+      $i++;
     }
   }
 
   // Render the tabs
-  $block->content .= theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string));
+  $block->content .= theme('panels_ajax_tab_tabs', array('tabs' => $tabs, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string, 'clean_url' => $clean_url));
 
   return $block;
 }
@@ -75,26 +101,27 @@ function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf, $contexts
 
   $data = new stdClass();
   $data->content = '';
-  $data->title = 'Tabs selected - ';
 
   // sort and load the mini-panels
   $minipanels = array();
   uasort($conf['mini_panels'], 'panels_ajax_tab_compare_weight');
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
-      $minipanels[] = panels_mini_load($panel_name);
+      $minipanels[] = panels_mini_load($panel_name)->admin_title;
     }
   }
 
   $content = '';
-  $context_string = 'none';
-  $data->content = theme('panels_ajax_tab_tabs', array('minipanels' => $minipanels, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string));
+  $data->title = 'Panels Ajax Tabs - ' . implode(', ', $minipanels);
 
   return $data;
 }
 
 function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
+  
+  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
+  
   $panels = panels_mini_load_all();
   foreach ($panels as $panel_name => $panel) {
     $panels[$panel_name] = (array) $panel;
@@ -117,6 +144,16 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
         '#markup' => $mini_panel['admin_title'],
       ),
 
+      'tab_title' => array(
+        '#type' => 'textfield',
+        '#default_value' => $mini_panel['tab_title'],
+      ),
+      
+      'url_id' => array(
+        '#type' => 'textfield',
+        '#default_value' => $mini_panel['url_id'],
+      ),
+
       'weight' => array(
         '#type' => 'weight',
         '#title' => t('Weight'),
@@ -127,14 +164,25 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     );
   }
 
+  $form['prev_container_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $conf['container_id'],
+  );
+
   $form['container_id'] = array(
     '#title' => t('Container ID'),
     '#type' => 'textfield',
-    '#description' => 'If you are using tabs in seperate pane, you must supply a unique container id string.',
+    '#description' => 'If you are using tabs in separate pane, you must supply a unique container id string.',
     '#default_value' => $conf['container_id'],
     '#required' => TRUE,
   );
-  $form['#theme'] = array('panels_ajax_tab_tabs_edit_form');
+
+  $form['clean_url'] = array(
+    '#title' => t('Clean URLs'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['clean_url'],
+    '#description' => 'Checking "Clean URLs" will cause the URL identifiers to be used to give the tabs a clean URL, and also allows the user to link to a specific tab without using an anchor link. It also makes it possible for web crawlers to crawl your tabs. Be careful to use a unique-looking URL identifier, as panels-ajax-tabs is greedy about claiming ownership over URL patterns. For example don\'t use "contact" if you also have a page somewhere that is at "/about/contact", instead use something like "tab-contact". When using clean URLs and features, you will additionally need to export the variable <tt>panels_ajax_tab</tt>'
+  );
 
   return $form;
 }
@@ -142,4 +190,20 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
 function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
   $form_state['conf']['mini_panels'] = $form_state['values']['mini_panels'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
+  
+  // Save the global settings into a variable
+  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
+  $settings['clean_url'] = $form_state['values']['clean_url'];
+  
+  if (isset($settings['panes'][$form_state['values']['prev_container_id']])) {
+    unset($settings['panes'][$form_state['values']['prev_container_id']]);
+  }
+  
+  foreach ($form_state['values']['mini_panels'] as $name => $mini) {
+    if ($mini['selected']) {
+      $settings['panes'][$form_state['values']['container_id']][$name] = $mini['url_id'];
+    }
+  }
+  
+  variable_set('panels_ajax_tab', $settings);
 }

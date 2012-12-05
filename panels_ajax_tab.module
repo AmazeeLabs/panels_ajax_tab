@@ -41,10 +41,10 @@ function panels_ajax_tab_menu() {
 function panels_ajax_tab_theme($existing, $type, $theme, $path) {
   return array(
     'panels_ajax_tab_tabs' => array(
-      'variables' => array('minipanels' => NULL, 'tab_container_id' => NULL, 'context_string' => NULL),
+      'variables' => array('tabs' => array(), 'tab_container_id' => NULL, 'context_string' => NULL, 'clean_url' => FALSE),
     ),
     'panels_ajax_tab_container' => array(
-      'variables' => array('tab_container_id' => NULL, 'context_string' => NULL),
+      'variables' => array('tab_container_id' => NULL, 'url_id' => NULL, 'context_string' => NULL, 'preloaded' => '', 'clean_url' => FALSE),
     ),
     'panels_ajax_tab_ajax' => array(
       'variables' => array('minipanel' => NULL),
@@ -56,14 +56,59 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
 }
 
 /**
+ * Implementation of hook_boot().
+ *
+ * IF Clean-URLs are enabled, check for them and modify the request as needed
+ */
+function panels_ajax_tab_boot() {
+  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
+  
+  if ($settings['clean_url']) {
+    foreach ($settings['panes'] as $pane) {
+      
+      foreach ($pane as $mininame => $item) {    
+        if ($item) {
+          $trigger =  '/' . $item;
+          
+          $pathlen = strlen($_GET['q']);
+          $triggerlen = strlen($trigger);
+          
+          if ($triggerlen > $pathlen) continue;
+          
+          if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
+            $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
+            $_GET['panels_ajax_tab_tab'] = $mininame;
+            break 2;
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
  * AHAH call-back for preview
  */
 function panels_ajax_tab_ajax($panel_name, $context_string) {
+  $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
+
+  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
+  drupal_static_reset('drupal_add_js');
+  drupal_static_reset('drupal_add_css');
+
+  print theme('panels_ajax_tab_ajax', array('minipanel' => $mini));
+
+  exit;
+}
+
+function panels_ajax_tab_prepare_mini($mini, $context_string) {
   ctools_include('context');
   ctools_include('plugins', 'panels');
-
-  $mini = panels_mini_load($panel_name);
-
+    
+  if (is_string($mini)) {
+    $mini = panels_mini_load($mini);
+  }
+  
   if ($context_string != 'none') {
     $parts = explode(':', $context_string);
     $entity_type = strtolower($parts[0]);
@@ -94,26 +139,21 @@ function panels_ajax_tab_ajax($panel_name, $context_string) {
   $mini->display->owner = $mini;
   // unique ID of this mini.
   $mini->display->owner->id = $mini->name;
-
-  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
-  drupal_static_reset('drupal_add_js');
-  drupal_static_reset('drupal_add_css');
-
-  print theme('panels_ajax_tab_ajax', array('minipanel' => $mini));
-
-  exit;
+  
+  return $mini;
+  
 }
 
 
 function theme_panels_ajax_tab_tabs($vars) {
-  foreach ($vars['minipanels'] as $mini) {
-    $tabs[] = '<a href="#" class="panels-ajax-tab-tab" data-panel-name="' . $mini->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '">' . $mini->admin_title . '</a>';
+  foreach ($vars['tabs'] as $tab) {
+    $tabs[] = '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '">' . $tab['title'] . '</a>';
   }
   return theme('item_list', array('items' => $tabs, 'attributes' => array('class' => array('tabs', 'inline', 'panels-ajax-tab'))));
 }
 
 function theme_panels_ajax_tab_container($vars) {
-  return '<div id="panels-ajax-tab-container-' . $vars['tab_container_id'] . '" class="panels-ajax-tab-container"></div>';
+  return '<div data-panels-ajax-tab-preloaded="' . $vars['preloaded'] . '" id="panels-ajax-tab-container-' . $vars['tab_container_id'] . '" class="panels-ajax-tab-container">' . $vars['content'] . '</div>';
 }
 
 function theme_panels_ajax_tab_ajax($vars) {
@@ -181,16 +221,18 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
       'data' => array(
         drupal_render($form['mini_panels'][$mini_panel]['selected']),
         drupal_render($form['mini_panels'][$mini_panel]['name']),
+        drupal_render($form['mini_panels'][$mini_panel]['tab_title']),
+        drupal_render($form['mini_panels'][$mini_panel]['url_id']),
         drupal_render($form['mini_panels'][$mini_panel]['weight']),
       ),
       'class' => array('draggable'),
     );
 
   }
-  $header = array(t('Select'), t('Mini panel name'), t('Weight'));
-  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'mini-panels-table')));
+  $header = array(t('Select'), t('Mini panel'), t('Tab title'), t('URL identifier'), t('Weight'));
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'panels-ajax-tab-admin-table')));
   $output .= drupal_render_children($form);
-  drupal_add_tabledrag('mini-panels-table', 'order', 'sibling', 'panel-weight');
+  drupal_add_tabledrag('panels-ajax-tab-admin-table', 'order', 'sibling', 'panel-weight');
   return $output;
 }
 

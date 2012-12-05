@@ -5,6 +5,7 @@
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context)
             .click(function(e) {
               e.preventDefault();
+              window.history.pushState({}, $(this).html(), $(this).attr('href'));
               $(this).panels_ajax_tabs_trigger();
             })
             .css('cursor', 'pointer')
@@ -12,9 +13,23 @@
 
         // Trigger a click event on the first tab to load it
         $('.pane-panels-ajax-tab-tabs', context).each(function() {
-          firstTab = $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)', this).first();
-          firstTab.trigger('click');
-          firstTab.addClass('panels-ajax-tabs-first-loaded');
+          var tabs = $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)', this);
+          var firstTab = tabs.first();
+          var target_id = firstTab.data('target-id');
+          var preloaded = $('#panels-ajax-tab-container-' + target_id).data('panels-ajax-tab-preloaded');
+          var currentTab;
+          
+          if (preloaded === '') {
+            currentTab = firstTab;
+            firstTab.trigger('click');
+          }
+          else {
+            currentTab = tabs.filter('*[data-panel-name="' + preloaded + '"]');
+            console.log(currentTab);
+          }
+          
+          currentTab.addClass('panels-ajax-tabs-first-loaded');
+          currentTab.parent().addClass('active');
         });
       });
     }

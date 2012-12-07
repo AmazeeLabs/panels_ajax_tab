@@ -27,7 +27,6 @@
           }
           else {
             currentTab = tabs.filter('*[data-panel-name="' + preloaded + '"]');
-            console.log(currentTab);
           }
           
           currentTab.addClass('panels-ajax-tabs-first-loaded');

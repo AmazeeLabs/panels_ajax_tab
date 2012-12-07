@@ -5,7 +5,9 @@
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context)
             .click(function(e) {
               e.preventDefault();
-              window.history.pushState({}, $(this).html(), $(this).attr('href'));
+              if (typeof window.history.pushState != 'undefined') {
+                window.history.pushState({}, $(this).html(), $(this).attr('href'));
+              }
               $(this).panels_ajax_tabs_trigger();
             })
             .css('cursor', 'pointer')

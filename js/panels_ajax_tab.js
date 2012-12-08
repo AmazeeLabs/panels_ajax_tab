@@ -5,9 +5,6 @@
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context)
             .click(function(e) {
               e.preventDefault();
-              if (typeof window.history.pushState != 'undefined') {
-                window.history.pushState({}, $(this).html(), $(this).attr('href'));
-              }
               $(this).panels_ajax_tabs_trigger();
             })
             .css('cursor', 'pointer')
@@ -46,6 +43,13 @@
   $.fn.extend({
     panels_ajax_tabs_trigger: function(callback) {
       return this.each(function() {
+        // Push the history
+        // @@TODO: Deal with crappy browsers and fall back to using a #anchor
+        // @@TODO: Properly deal with the user clicking back 
+        if (typeof window.history.pushState != 'undefined') {
+          window.history.pushState({}, $(this).html(), $(this).attr('href'));
+        }
+        
         var container = $(this).parents('.panels-ajax-tab:first');
         if ($(container).data('loading') === true)
           return true;

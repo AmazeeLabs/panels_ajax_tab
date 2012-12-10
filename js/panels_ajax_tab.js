@@ -5,7 +5,9 @@
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context)
             .click(function(e) {
               e.preventDefault();
-              $(this).panels_ajax_tabs_trigger();
+              if (!$(this).parent().hasClass('active')) {
+                $(this).panels_ajax_tabs_trigger();
+              }
             })
             .css('cursor', 'pointer')
             .addClass('panels-ajax-tabs-processed');
@@ -78,7 +80,7 @@
           if (callback) {
             callback.call(this);
           }
-        });
+        })
         $(this).parent().siblings().removeClass('active');
         $(this).parent().addClass('active');
       });

@@ -1,17 +1,32 @@
 (function($) {
   Drupal.behaviors.panels_ajax_tabs = {
     attach: function(context) {
-      $(function() {
-        $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context)
-            .click(function(e) {
+  
+        
+        $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context).once('panels-ajax-tabs-once', function() {  
+            
+            //We need ot push the state when the page first loads, so we know what the first tab is
+            if ($(this).parent().hasClass('active')) {
+              window.history.replaceState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
+            }
+            
+            $(this).click(function(e) {
               e.preventDefault();
+              // Push the history
+              // @@TODO: Deal with crappy browsers and fall back to using a #anchor
+              // @@TODO: Properly deal with the user clicking back 
+              if (typeof window.history.pushState != 'undefined') {
+                window.history.pushState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
+              }
+              
               if (!$(this).parent().hasClass('active')) {
                 $(this).panels_ajax_tabs_trigger();
               }
+              
             })
             .css('cursor', 'pointer')
             .addClass('panels-ajax-tabs-processed');
-
+  
         // Trigger a click event on the first tab to load it
         $('.pane-panels-ajax-tab-tabs', context).each(function() {
           var tabs = $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)', this);
@@ -30,10 +45,18 @@
           
           currentTab.addClass('panels-ajax-tabs-first-loaded');
           currentTab.parent().addClass('active');
-        });
+        });  
       });
     }
   };
+  
+
+  window.onpopstate = function(e) {
+    if(e.state != null){
+      $('a[data-panel-name="'+e.state.tab+'"]').panels_ajax_tabs_trigger();
+    }
+  };
+  
 })(jQuery);
 
 
@@ -44,13 +67,9 @@
 (function($){
   $.fn.extend({
     panels_ajax_tabs_trigger: function(callback) {
+
       return this.each(function() {
-        // Push the history
-        // @@TODO: Deal with crappy browsers and fall back to using a #anchor
-        // @@TODO: Properly deal with the user clicking back 
-        if (typeof window.history.pushState != 'undefined') {
-          window.history.pushState({}, $(this).html(), $(this).attr('href'));
-        }
+        
         
         var container = $(this).parents('.panels-ajax-tab:first');
         if ($(container).data('loading') === true)

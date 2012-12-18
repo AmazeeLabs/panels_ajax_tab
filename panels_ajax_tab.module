@@ -62,19 +62,19 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
  */
 function panels_ajax_tab_boot() {
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
-  
+
   if ($settings['clean_url']) {
     foreach ($settings['panes'] as $pane) {
-      
-      foreach ($pane as $mininame => $item) {    
+
+      foreach ($pane as $mininame => $item) {
         if ($item) {
           $trigger =  '/' . $item;
-          
+
           $pathlen = strlen($_GET['q']);
           $triggerlen = strlen($trigger);
-          
+
           if ($triggerlen > $pathlen) continue;
-          
+
           if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
             $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
             $_GET['panels_ajax_tab_tab'] = $mininame;
@@ -104,11 +104,11 @@ function panels_ajax_tab_ajax($panel_name, $context_string) {
 function panels_ajax_tab_prepare_mini($mini, $context_string) {
   ctools_include('context');
   ctools_include('plugins', 'panels');
-    
+
   if (is_string($mini)) {
     $mini = panels_mini_load($mini);
   }
-  
+
   if ($context_string != 'none') {
     $parts = explode(':', $context_string);
     $entity_type = strtolower($parts[0]);
@@ -139,9 +139,9 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   $mini->display->owner = $mini;
   // unique ID of this mini.
   $mini->display->owner->id = $mini->name;
-  
+
   return $mini;
-  
+
 }
 
 

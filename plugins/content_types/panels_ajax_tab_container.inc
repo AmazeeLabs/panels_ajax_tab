@@ -51,26 +51,23 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
 
   // Get the tab-container-id
   $tab_container_id = $conf['container_id'];
-  
+
   // If we have clean-urls turned on we can pre-load the content
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
-  $tabs = $settings['panes'][$tab_container_id];
-  $clean_url = $settings['clean_url'];
-  
+  $tabs = isset($settings['panes'][$tab_container_id]) ? $settings['panes'][$tab_container_id] : array();
+  $clean_url = isset($settings['clean_url']) ? $settings['clean_url'] : FALSE;
+
+  $content = '';
   $preloaded = '';
-  $content = '';  
-  if ($clean_url) {
-    if (isset($_GET['panels_ajax_tab_tab'])) {
+  if ($tabs) {
+    $preloaded = reset(array_keys($tabs));
+    if ($clean_url && isset($_GET['panels_ajax_tab_tab'])) {
       if ($tabs[$_GET['panels_ajax_tab_tab']]) {
         $preloaded = $_GET['panels_ajax_tab_tab'];
-        $mini = panels_mini_load($preloaded);
       }
     }
-    else {
-      $preloaded = reset(array_keys($tabs));
-      $mini = panels_mini_load($preloaded);
-    }
-    
+
+    $mini = panels_mini_load($preloaded);
     $mini = panels_ajax_tab_prepare_mini($mini, $context_string);
     $layout = panels_get_layout($mini->display->layout);
     $content = panels_render_display($mini->display);

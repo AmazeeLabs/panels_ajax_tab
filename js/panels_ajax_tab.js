@@ -1,8 +1,6 @@
 (function($) {
   Drupal.behaviors.panels_ajax_tabs = {
     attach: function(context) {
-  
-        
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context).once('panels-ajax-tabs-once', function() {  
             
             //We need ot push the state when the page first loads, so we know what the first tab is
@@ -14,7 +12,6 @@
               e.preventDefault();
               // Push the history
               // @@TODO: Deal with crappy browsers and fall back to using a #anchor
-              // @@TODO: Properly deal with the user clicking back 
               if (typeof window.history.pushState != 'undefined') {
                 window.history.pushState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
               }
@@ -41,6 +38,8 @@
           }
           else {
             currentTab = tabs.filter('*[data-panel-name="' + preloaded + '"]');
+            // Prime the cache from the preloaded content
+            currentTab.data('panels-ajax-tab-cache', $('#panels-ajax-tab-container-' + target_id).html());
           }
           
           currentTab.addClass('panels-ajax-tabs-first-loaded');
@@ -67,41 +66,58 @@
 (function($){
   $.fn.extend({
     panels_ajax_tabs_trigger: function(callback) {
-
       return this.each(function() {
+        var $tab = $(this);
+        var container = $tab.parents('.panels-ajax-tab:first');
         
-        
-        var container = $(this).parents('.panels-ajax-tab:first');
+        // If it's already in the process of loading, dont do anything
         if ($(container).data('loading') === true)
           return true;
         $(container).data('loading', true);
 
-        var target_id = $(this).data('target-id');
-        var panel_name = $(this).data('panel-name');
-        var entity_context = $(this).data('entity-context');
-        $.ajax({
-          url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context,
-          datatype: 'html',
-          cache: true,
-          beforeSend: function(xhr) {
-            $('#panels-ajax-tab-container-' + target_id).html('<img class="loading" src="' + Drupal.settings.basePath + Drupal.settings.panel_ajax_tab.path + '/images/loading.gif"/>');
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-            $('#panels-ajax-tab-container-' + target_id).html('Error: ' + errorThrown);
-            $(container).data('loading', false);
-          }
-        }).done(function(data) {
-          $('#panels-ajax-tab-container-' + target_id).html(data);
+        var target_id = $tab.data('target-id');
+        var panel_name = $tab.data('panel-name');
+        var entity_context = $tab.data('entity-context');
+            
+        // If we have it cached we don't need to do AJAX
+        if (typeof $tab.data('panels-ajax-tab-cache') !== "undefined") {
+          $('#panels-ajax-tab-container-' + target_id).html($tab.data('panels-ajax-tab-cache'));
           Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id));
           $(container).data('loading', false);
-
+          
           // Trigger optional callback
           if (callback) {
-            callback.call(this);
+            callback.call(this, $tab);
           }
-        })
-        $(this).parent().siblings().removeClass('active');
-        $(this).parent().addClass('active');
+        }
+        else {
+          $.ajax({
+            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context,
+            datatype: 'html',
+            cache: true,
+            beforeSend: function(xhr) {
+              $('#panels-ajax-tab-container-' + target_id).html('<img class="loading" src="' + Drupal.settings.basePath + Drupal.settings.panel_ajax_tab.path + '/images/loading.gif"/>');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              $('#panels-ajax-tab-container-' + target_id).html('Error: ' + errorThrown);
+              $(container).data('loading', false);
+            }
+          }).done(function(data) {
+            $('#panels-ajax-tab-container-' + target_id).html(data);
+            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id));
+            $(container).data('loading', false);
+            
+            // Cache the contents
+            $tab.data('panels-ajax-tab-cache', $('#panels-ajax-tab-container-' + target_id).html());
+            
+            // Trigger optional callback
+            if (callback) {
+              callback.call(this, $tab);
+            }
+          })
+        }
+        $tab.parent().siblings().removeClass('active');
+        $tab.parent().addClass('active');
       });
     }
   });

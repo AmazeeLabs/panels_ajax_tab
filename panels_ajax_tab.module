@@ -41,10 +41,10 @@ function panels_ajax_tab_menu() {
 function panels_ajax_tab_theme($existing, $type, $theme, $path) {
   return array(
     'panels_ajax_tab_tabs' => array(
-      'variables' => array('tabs' => array(), 'tab_container_id' => NULL, 'context_string' => NULL, 'clean_url' => FALSE),
+      'variables' => array('tabs' => array(), 'tab_container_id' => NULL, 'context_string' => NULL, 'clean_url' => FALSE, 'clean_url_delim' => '/'),
     ),
     'panels_ajax_tab_container' => array(
-      'variables' => array('tab_container_id' => NULL, 'url_id' => NULL, 'context_string' => NULL, 'preloaded' => '', 'clean_url' => FALSE),
+      'variables' => array('tab_container_id' => NULL, 'url_id' => NULL, 'context_string' => NULL, 'preloaded' => '', 'clean_url' => FALSE, 'clean_url_delim' => '/'),
     ),
     'panels_ajax_tab_ajax' => array(
       'variables' => array('minipanel' => NULL),
@@ -61,14 +61,13 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
  * IF Clean-URLs are enabled, check for them and modify the request as needed
  */
 function panels_ajax_tab_boot() {
-  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
+  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
 
   if ($settings['clean_url']) {
     foreach ($settings['panes'] as $pane) {
-
       foreach ($pane as $mininame => $item) {
         if ($item) {
-          $trigger =  '/' . $item;
+          $trigger =  $settings['clean_url_delim'] . $item;
 
           $pathlen = strlen($_GET['q']);
           $triggerlen = strlen($trigger);

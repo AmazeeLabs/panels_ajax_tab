@@ -64,10 +64,13 @@ function panels_ajax_tab_boot() {
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
 
   if ($settings['clean_url']) {
+  
+    $delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
+    
     foreach ($settings['panes'] as $pane) {
       foreach ($pane as $mininame => $item) {
         if ($item) {
-          $trigger =  $settings['clean_url_delim'] . $item;
+          $trigger = $delim . $item;
 
           $pathlen = strlen($_GET['q']);
           $triggerlen = strlen($trigger);

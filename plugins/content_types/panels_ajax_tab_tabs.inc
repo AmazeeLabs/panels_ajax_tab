@@ -45,6 +45,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
   $clean_url = $settings['clean_url'];
+  $clean_url_delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
 
   // sort and load the mini-panels
   $tabs = array();
@@ -61,7 +62,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
         $href = url($_GET['q']);
       }
       else if ($clean_url) {
-        $href = url($_GET['q']) . $settings['clean_url_delim'] . $url_id;
+        $href = url($_GET['q']) . $clean_url_delim . $url_id;
       }
       else {
         $href = url($_GET['q']) . '#' . $url_id;

@@ -123,8 +123,6 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
   
-  dpm($settings);
-  
   $panels = panels_mini_load_all();
   foreach ($panels as $panel_name => $panel) {
     $panels[$panel_name] = (array) $panel;

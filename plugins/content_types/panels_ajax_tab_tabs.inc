@@ -32,6 +32,11 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   drupal_add_js(drupal_get_path('module', 'panels_ajax_tab') . '/js/panels_ajax_tab.js');
   drupal_add_css(drupal_get_path('module', 'panels_ajax_tab') . '/css/panels_ajax_tab.css');
 
+  // Add in default url_enabled
+  if (!isset($conf['url_enabled'])) {
+    $conf['url_enabled'] = 1;
+  }
+
   // Generate the context string
   if (!$contexts[0]->data) {
     $context_string = 'none';
@@ -58,7 +63,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
       if ($i) $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $mini->name;
       else $url_id = '';
       
-      if (!$url_id) {
+      if (!$url_id || !$conf['url_enabled']) {
         $href = url($_GET['q']);
       }
       else if ($clean_url) {
@@ -73,6 +78,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
         'mini_panel' => $mini, 
         'title' => $panel_conf['tab_title'] ? $panel_conf['tab_title'] : $mini->admin_title,
         'url_id' => $url_id, 
+        'url_enabled' => $conf['url_enabled'], 
         'href' => $href
       );
       
@@ -178,11 +184,23 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  $form['url_enabled'] = array(
+    '#title' => t('URL integration'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($conf['url_enabled']) ? $conf['url_enabled'] : 1,
+    '#description' => 'Enabling URL integration will allow users to link to a specific ajax-tab opening first.'
+  );
+
   $form['clean_url'] = array(
     '#title' => t('Clean URLs'),
     '#type' => 'checkbox',
     '#default_value' => $settings['clean_url'],
-    '#description' => 'Checking "Clean URLs" will cause the URL identifiers to be used to give the tabs a clean URL, and also allows the user to link to a specific tab without using an anchor link. It also makes it possible for web crawlers to crawl your tabs. Be careful to use a unique-looking URL identifier, as panels-ajax-tabs is greedy about claiming ownership over URL patterns. For example don\'t use "contact" if you also have a page somewhere that is at "/about/contact", instead use something like "tab-contact". When using clean URLs and features, you will additionally need to export the variable <tt>panels_ajax_tab</tt>'
+    '#description' => 'Checking "Clean URLs" will cause the URL identifiers to be used to give the tabs a clean URL, and also allows the user to link to a specific tab without using an anchor link. It also makes it possible for web crawlers to crawl your tabs. Be careful to use a unique-looking URL identifier, as panels-ajax-tabs is greedy about claiming ownership over URL patterns. For example don\'t use "contact" if you also have a page somewhere that is at "/about/contact", instead use something like "tab-contact". When using clean URLs and features, you will additionally need to export the variable <tt>panels_ajax_tab</tt>',
+    '#states' => array(
+      'invisible' => array(
+       ':input[name="url_enabled"]' => array('checked' => FALSE),
+      ),
+    ),
   );
 
   $form['clean_url_delim'] = array(
@@ -193,7 +211,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#description' => 'Delimiter to be used for clean URLs', 
     '#states' => array(
       'invisible' => array(
-       ':input[name="clean_url"]' => array('checked' => FALSE),
+        ':input[name="url_enabled"]' => array('checked' => FALSE),
       ),
     ),
   );
@@ -205,14 +223,15 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
 }
 
 function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
-  $form_state['conf']['mini_panels'] = $form_state['values']['mini_panels'];
+  $form_state['conf']['mini_panels'] =  $form_state['values']['mini_panels'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
+  $form_state['conf']['url_enabled'] =  $form_state['values']['url_enabled'];
   
   // Save the global settings into a variable
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
   $settings['clean_url'] = $form_state['values']['clean_url'];
   $settings['clean_url_delim'] = $form_state['values']['clean_url_delim'];
-  
+
   if (isset($settings['panes'][$form_state['values']['prev_container_id']])) {
     unset($settings['panes'][$form_state['values']['prev_container_id']]);
   }

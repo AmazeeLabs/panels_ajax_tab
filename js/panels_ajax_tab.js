@@ -11,7 +11,6 @@
             $(this).click(function(e) {
               e.preventDefault();
               // Push the history
-              // @@TODO: Deal with crappy browsers and fall back to using a #anchor
               if (typeof window.history.pushState != 'undefined') {
                 window.history.pushState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
               }

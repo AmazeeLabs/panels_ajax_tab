@@ -5,7 +5,9 @@
             
             //We need ot push the state when the page first loads, so we know what the first tab is
             if ($(this).parent().hasClass('active')) {
-              window.history.replaceState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
+              if (typeof window.history.pushState != 'undefined') {
+                window.history.replaceState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
+              }
             }
             
             $(this).click(function(e) {

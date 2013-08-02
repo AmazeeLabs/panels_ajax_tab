@@ -89,6 +89,20 @@ function panels_ajax_tab_boot() {
 }
 
 /**
+ * Implements hook_element_info_alter
+ * 
+ * Form actions should default to the panels-ajax-tab request URL, not the acutal request URI
+ */
+function panels_ajax_tab_element_info_alter(&$element_info) {
+  if (arg(0) == 'panels_ajax_tab') {
+    $headers = getallheaders();
+    if (!empty($headers['X-Request-Path'])) {
+      $element_info['form']['#action'] = $headers['X-Request-Path'];
+    }
+  }
+}
+
+/**
  * AHAH call-back for preview
  */
 function panels_ajax_tab_ajax($panel_name, $context_string) {

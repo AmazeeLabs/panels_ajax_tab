@@ -95,6 +95,7 @@
           $.ajax({
             url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context,
             datatype: 'html',
+            headers: {"X-Request-Path": document.location.pathname},
             cache: true,
             beforeSend: function(xhr) {
               $('#panels-ajax-tab-container-' + target_id).html('<img class="loading" src="' + Drupal.settings.basePath + Drupal.settings.panel_ajax_tab.path + '/images/loading.gif"/>');

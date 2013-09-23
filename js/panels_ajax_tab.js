@@ -2,18 +2,19 @@
   Drupal.behaviors.panels_ajax_tabs = {
     attach: function(context) {
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context).once('panels-ajax-tabs-once', function() {  
-            
+
             //We need ot push the state when the page first loads, so we know what the first tab is
-            if ($(this).parent().hasClass('active')) {
+            if ($(this).parent().hasClass('active') && $(this).data('url-enabled') == 1) {
               if (typeof window.history.pushState != 'undefined') {
                 window.history.replaceState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
               }
-            }
+            } 
             
             $(this).click(function(e) {
               e.preventDefault();
+
               // Push the history
-              if (typeof window.history.pushState != 'undefined') {
+              if (typeof window.history.pushState != 'undefined' && $(this).data('url-enabled') == 1) {
                 window.history.pushState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
               }
               
@@ -79,7 +80,8 @@
         var target_id = $tab.data('target-id');
         var panel_name = $tab.data('panel-name');
         var entity_context = $tab.data('entity-context');
-            
+        var url_enabled = $tab.data('url-enabled');
+        
         // If we have it cached we don't need to do AJAX
         if (typeof $tab.data('panels-ajax-tab-cache') !== "undefined") {
           $('#panels-ajax-tab-container-' + target_id).html($tab.data('panels-ajax-tab-cache'));
@@ -93,7 +95,7 @@
         }
         else {
           $.ajax({
-            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context,
+            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context + '/' + url_enabled,
             datatype: 'html',
             headers: {"X-Request-Path": document.location.pathname},
             cache: true,
@@ -111,7 +113,7 @@
             
             // Cache the contents
             $tab.data('panels-ajax-tab-cache', $('#panels-ajax-tab-container-' + target_id).html());
-            
+
             // Trigger optional callback
             if (callback) {
               callback.call(this, $tab);

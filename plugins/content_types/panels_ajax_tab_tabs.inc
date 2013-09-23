@@ -47,7 +47,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
     $entity_id = array_shift($entity_ids);
     $context_string = $entity_type . ':' . $entity_id;
   }
-  
+
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
   $clean_url = $settings['clean_url'];
   $clean_url_delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
@@ -58,11 +58,11 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   $i = 0;
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
-      
+
       // Set the URL ID - note the first one never has one regardless of what has been set
-      if ($i) $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $mini->name;
+      if ($i) $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : FALSE;
       else $url_id = '';
-      
+
       if (!$url_id || !$conf['url_enabled']) {
         $href = url($_GET['q']);
       }
@@ -72,16 +72,16 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
       else {
         $href = url($_GET['q']) . '#' . $url_id;
       }
-      
+
       $mini = panels_mini_load($panel_name);
       $tabs[] = array(
-        'mini_panel' => $mini, 
+        'mini_panel' => $mini,
         'title' => $panel_conf['tab_title'] ? $panel_conf['tab_title'] : $mini->admin_title,
-        'url_id' => $url_id, 
-        'url_enabled' => $conf['url_enabled'], 
+        'url_id' => $url_id,
+        'url_enabled' => !empty($url_id) ? $conf['url_enabled'] : 0,
         'href' => $href
       );
-      
+
       $i++;
     }
   }
@@ -126,9 +126,9 @@ function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf, $contexts
 
 function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $conf = $form_state['conf'];
-  
+
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
-  
+
   $panels = panels_mini_load_all();
   foreach ($panels as $panel_name => $panel) {
     $panels[$panel_name] = (array) $panel;
@@ -155,7 +155,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
         '#type' => 'textfield',
         '#default_value' => $mini_panel['tab_title'],
       ),
-      
+
       'url_id' => array(
         '#type' => 'textfield',
         '#default_value' => $mini_panel['url_id'],
@@ -208,7 +208,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#type' => 'textfield',
     '#size'=> 1,
     '#default_value' => isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/',
-    '#description' => 'Delimiter to be used for clean URLs', 
+    '#description' => 'Delimiter to be used for clean URLs',
     '#states' => array(
       'invisible' => array(
         ':input[name="url_enabled"]' => array('checked' => FALSE),
@@ -226,7 +226,7 @@ function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
   $form_state['conf']['mini_panels'] =  $form_state['values']['mini_panels'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
   $form_state['conf']['url_enabled'] =  $form_state['values']['url_enabled'];
-  
+
   // Save the global settings into a variable
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
   $settings['clean_url'] = $form_state['values']['clean_url'];
@@ -235,12 +235,12 @@ function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
   if (isset($settings['panes'][$form_state['values']['prev_container_id']])) {
     unset($settings['panes'][$form_state['values']['prev_container_id']]);
   }
-  
+
   foreach ($form_state['values']['mini_panels'] as $name => $mini) {
     if ($mini['selected']) {
       $settings['panes'][$form_state['values']['container_id']][$name] = $mini['url_id'];
     }
   }
-  
+
   variable_set('panels_ajax_tab', $settings);
 }

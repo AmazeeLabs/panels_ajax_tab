@@ -23,11 +23,11 @@ function panels_ajax_tab_ctools_plugin_directory($module, $plugin) {
 function panels_ajax_tab_menu() {
   $items = array();
 
-  $items['panels_ajax_tab/%/%'] = array(
+  $items['panels_ajax_tab/%/%/%'] = array(
     'title' => 'panels-ajax tab AJAX callback',
     'description' => 'AHAJ callback for panels tabs',
     'page callback' => 'panels_ajax_tab_ajax',
-    'page arguments' => array(1, 2),
+    'page arguments' => array(1, 2, 3),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -64,9 +64,9 @@ function panels_ajax_tab_boot() {
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
 
   if ($settings['clean_url']) {
-  
+
     $delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
-    
+
     foreach ($settings['panes'] as $pane) {
       foreach ($pane as $mininame => $item) {
         if ($item) {
@@ -90,7 +90,7 @@ function panels_ajax_tab_boot() {
 
 /**
  * Implements hook_element_info_alter
- * 
+ *
  * Form actions should default to the panels-ajax-tab request URL, not the acutal request URI
  */
 function panels_ajax_tab_element_info_alter(&$element_info) {
@@ -105,14 +105,14 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 /**
  * AHAH call-back for preview
  */
-function panels_ajax_tab_ajax($panel_name, $context_string) {
+function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
 
   // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
   drupal_static_reset('drupal_add_js');
   drupal_static_reset('drupal_add_css');
 
-  print theme('panels_ajax_tab_ajax', array('minipanel' => $mini));
+  print theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 
   exit;
 }
@@ -195,6 +195,13 @@ function theme_panels_ajax_tab_ajax($vars) {
     xmlns:mml="http://www.w3.org/1998/Math/MathML">
   ';
   $output .= '<head>';
+
+  //Need to call page alter so that modules like google analytics can add js
+  //We only invoke the page alter if url_enabled is true
+  if($vars['url_enabled']) {
+    $page = array();
+    drupal_alter('page', $page);
+  }
 
   // Get the javascript and filter out the default misc/drupal.js - it's already been added by the calling page
   $javascript = drupal_add_js();

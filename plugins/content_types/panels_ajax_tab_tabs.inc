@@ -235,8 +235,9 @@ function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
   if (isset($settings['panes'][$form_state['values']['prev_container_id']])) {
     unset($settings['panes'][$form_state['values']['prev_container_id']]);
   }
-
-  foreach ($form_state['values']['mini_panels'] as $name => $mini) {
+  // Sort and save the tabs into a variable
+  uasort($form_state['conf']['mini_panels'], 'panels_ajax_tab_compare_weight');
+  foreach ($form_state['conf']['mini_panels'] as $name => $mini) {
     if ($mini['selected']) {
       $settings['panes'][$form_state['values']['container_id']][$name] = $mini['url_id'];
     }

@@ -60,7 +60,6 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   $content = '';
   $preloaded = '';
   if ($tabs) {
-    uasort($tabs, 'panels_ajax_tab_compare_weight');
     $preloaded = reset(array_keys($tabs));
     if ($clean_url && isset($_GET['panels_ajax_tab_tab'])) {
       if ($tabs[$_GET['panels_ajax_tab_tab']]) {

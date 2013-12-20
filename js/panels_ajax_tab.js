@@ -81,17 +81,29 @@
         var panel_name = $tab.data('panel-name');
         var entity_context = $tab.data('entity-context');
         var url_enabled = $tab.data('url-enabled');
+        // Create a new jQuery.Event for
+        var loadedEvent = $.Event("panelsAjaxTabsLoaded");
+        loadedEvent.data = {
+            containerId: '#panels-ajax-tab-container-' + target_id,
+            callback: callback,
+        };
         
         // If we have it cached we don't need to do AJAX
         if (typeof $tab.data('panels-ajax-tab-cache') !== "undefined") {
           $('#panels-ajax-tab-container-' + target_id).html($tab.data('panels-ajax-tab-cache'));
           Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
+          
+          loadedEvent.data.cached = true;
+          
           $(container).data('loading', false);
           
           // Trigger optional callback
           if (callback) {
             callback.call(this, $tab);
           }
+          
+          loadedEvent.tabObject = $tab;
+          $(document).trigger(loadedEvent, loadedEvent.data);            
         }
         else {
           $.ajax({
@@ -118,6 +130,10 @@
             if (callback) {
               callback.call(this, $tab);
             }
+            
+            loadedEvent.data.cached = false;
+            loadedEvent.tabObject = $tab;
+            $(document).trigger(loadedEvent, loadedEvent.data);            
           })
         }
         $tab.parent().siblings().removeClass('active');

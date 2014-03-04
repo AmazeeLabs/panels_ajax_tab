@@ -168,7 +168,7 @@ function theme_panels_ajax_tab_tabs($vars) {
     $tabhtml =  '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
 
     // Add a hidden link for javascript enabled crawlers (but not normal web crawlers)
-    $tabhtml .= '<a href="/panels_ajax_tab/' . $tab['mini_panel']->name . '/' . $vars['context_string'] . '/' . $url_enabled . '" rel="nofollow" style="display:none" class="js-crawler-link" />';
+    $tabhtml .= '<a href="/panels_ajax_tab/' . $tab['mini_panel']->name . '/' . $vars['context_string'] . '/' . $url_enabled . '" rel="nofollow" style="display:none" class="js-crawler-link"></a>';
 
     $tabs[] = $tabhtml;
   }

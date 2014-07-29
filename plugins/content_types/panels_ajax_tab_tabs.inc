@@ -1,27 +1,25 @@
 <?php
-
 /**
  * @file
- * Contains the content type plugin for a Ajax tabs.
  *
+ * Contains the content type plugin for a Ajax tabs.
  */
 
 $plugin = array(
-  'title'            => t('AJAX Tab - Tabs'),
-  'admin title'      => 'panels_ajax_tab_tabs_content_type_admin_title',
-  'admin info'       => 'panels_ajax_tab_tabs_content_type_admin_info',
-  'description'      => t('List of Tabs to control a container'),
-  'single'           => TRUE,
-  'category'         => t('AJAX Tabs'),
+  'title' => t('AJAX Tab - Tabs'),
+  'admin title' => 'panels_ajax_tab_tabs_content_type_admin_title',
+  'admin info' => 'panels_ajax_tab_tabs_content_type_admin_info',
+  'description' => t('List of Tabs to control a container'),
+  'single' => TRUE,
+  'category' => t('AJAX Tabs'),
   'required context' => array(
     new ctools_context_optional(t('Entity Context'), 'entity'),
   ),
-  'render callback'  => 'panels_ajax_tab_tabs_render',
-  'edit form'        => 'panels_ajax_tab_tabs_edit_form'
+  'render callback' => 'panels_ajax_tab_tabs_render',
+  'edit form' => 'panels_ajax_tab_tabs_edit_form'
 );
 
 function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
-  static $default_tab_container_id = 0;
   ctools_include('context');
   ctools_include('plugins', 'panels');
   $block = new stdClass();
@@ -198,7 +196,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#description' => 'Checking "Clean URLs" will cause the URL identifiers to be used to give the tabs a clean URL, and also allows the user to link to a specific tab without using an anchor link. It also makes it possible for web crawlers to crawl your tabs. Be careful to use a unique-looking URL identifier, as panels-ajax-tabs is greedy about claiming ownership over URL patterns. For example don\'t use "contact" if you also have a page somewhere that is at "/about/contact", instead use something like "tab-contact". When using clean URLs and features, you will additionally need to export the variable <tt>panels_ajax_tab</tt>',
     '#states' => array(
       'invisible' => array(
-       ':input[name="url_enabled"]' => array('checked' => FALSE),
+        ':input[name="url_enabled"]' => array('checked' => FALSE),
       ),
     ),
   );
@@ -206,7 +204,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $form['clean_url_delim'] = array(
     '#title' => t('Clean URL delimiter'),
     '#type' => 'textfield',
-    '#size'=> 1,
+    '#size' => 1,
     '#default_value' => isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/',
     '#description' => 'Delimiter to be used for clean URLs',
     '#states' => array(
@@ -223,9 +221,9 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
 }
 
 function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
-  $form_state['conf']['mini_panels'] =  $form_state['values']['mini_panels'];
+  $form_state['conf']['mini_panels'] = $form_state['values']['mini_panels'];
   $form_state['conf']['container_id'] = $form_state['values']['container_id'];
-  $form_state['conf']['url_enabled'] =  $form_state['values']['url_enabled'];
+  $form_state['conf']['url_enabled'] = $form_state['values']['url_enabled'];
 
   // Save the global settings into a variable
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));

@@ -1,22 +1,21 @@
 <?php
-
 /**
  * @file
- * Contains the content type plugin for a Ajax tabs container.
  *
+ * Contains the content type plugin for a Ajax tabs container.
  */
 
 $plugin = array(
-  'title'            => t('AJAX Tab - Container'),
-  'admin title'      => 'panels_ajax_tab_container_content_type_admin_title',
-  'description'      => t('The AJAX content will be loaded within this pane'),
-  'single'           => TRUE,
-  'category'         => t('AJAX Container'),
+  'title' => t('AJAX Tab - Container'),
+  'admin title' => 'panels_ajax_tab_container_content_type_admin_title',
+  'description' => t('The AJAX content will be loaded within this pane'),
+  'single' => TRUE,
+  'category' => t('AJAX Container'),
   'required context' => array(
     new ctools_context_optional(t('Entity Context'), 'entity'),
   ),
-  'render callback'  => 'panels_ajax_tab_container_render',
-  'edit form'        => 'panels_ajax_tab_container_edit_form'
+  'render callback' => 'panels_ajax_tab_container_render',
+  'edit form' => 'panels_ajax_tab_container_edit_form'
 );
 
 /**
@@ -69,7 +68,6 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
 
     $mini = panels_mini_load($preloaded);
     $mini = panels_ajax_tab_prepare_mini($mini, $context_string);
-    $layout = panels_get_layout($mini->display->layout);
     $content = panels_render_display($mini->display);
   }
 

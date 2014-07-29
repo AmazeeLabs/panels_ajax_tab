@@ -1,4 +1,9 @@
 <?php
+/**
+ * @file
+ *
+ * Module file.
+ */
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -165,7 +170,7 @@ function theme_panels_ajax_tab_tabs($vars) {
   foreach ($vars['tabs'] as $tab) {
     $url_enabled = (isset($tab['url_enabled']) ? $tab['url_enabled'] : 1);
 
-    $tabhtml =  '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
+    $tabhtml = '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
 
     // Add a hidden link for javascript enabled crawlers (but not normal web crawlers)
     $tabhtml .= '<a href="/panels_ajax_tab/' . $tab['mini_panel']->name . '/' . $vars['context_string'] . '/' . $url_enabled . '" rel="nofollow" style="display:none" class="js-crawler-link"></a>';
@@ -184,7 +189,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   $layout = panels_get_layout($mini->display->layout);
   $panels_output = panels_render_display($mini->display);
 
-  $output  = '';
+  $output = '';
   $output .= '<?xml version="1.0" encoding="UTF-8" ?>';
   $output .= '
     <html version="HTML+RDFa+MathML 1.1"
@@ -203,7 +208,7 @@ function theme_panels_ajax_tab_ajax($vars) {
 
   //Need to call page alter so that modules like google analytics can add js
   //We only invoke the page alter if url_enabled is true
-  if($vars['url_enabled']) {
+  if ($vars['url_enabled']) {
     $page = array();
     drupal_alter('page', $page);
   }
@@ -240,7 +245,7 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
       break;
     }
     else {
-     $output .= drupal_render($form[$element]);
+      $output .= drupal_render($form[$element]);
     }
   }
   $rows = array();

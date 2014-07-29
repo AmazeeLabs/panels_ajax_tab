@@ -13,17 +13,18 @@ function panels_ajax_tab_ctools_plugin_api() {
 }
 
 /**
- * Implementation of hook_ctools_plugin_dierctory() to let the system know
- * we implement plugins.
+ * Implements hook_ctools_plugin_directory().
  */
 function panels_ajax_tab_ctools_plugin_directory($module, $plugin) {
   if ($plugin == 'content_types') {
     return 'plugins/' . $plugin;
   }
+
+  return NULL;
 }
 
 /**
- * Implementation of hook_menu()
+ * Implements hook_menu().
  */
 function panels_ajax_tab_menu() {
   $items = array();
@@ -41,7 +42,7 @@ function panels_ajax_tab_menu() {
 }
 
 /**
- * Implementation of hook_menu()
+ * Implements hook_menu().
  */
 function panels_ajax_tab_theme($existing, $type, $theme, $path) {
   return array(
@@ -61,30 +62,30 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implementation of hook_boot().
- *
- * IF Clean-URLs are enabled, check for them and modify the request as needed
+ * Implements hook_boot().
  */
 function panels_ajax_tab_boot() {
+  // If Clean-URLs are enabled, check for them and modify the request as needed.
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
 
   if ($settings['clean_url']) {
-
-    $delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
+    $delimeter = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
 
     foreach ($settings['panes'] as $pane) {
-      foreach ($pane as $mininame => $item) {
-        if ($item) {
-          $trigger = $delim . $item;
+      foreach ($pane as $minipanel_name => $url_part) {
+        if ($url_part) {
+          $trigger = $delimeter . $url_part;
 
-          $pathlen = strlen($_GET['q']);
-          $triggerlen = strlen($trigger);
+          $path_length = strlen($_GET['q']);
+          $trigger_length = strlen($trigger);
 
-          if ($triggerlen > $pathlen) continue;
+          if ($trigger_length > $path_length) {
+            continue;
+          }
 
-          if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
-            $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
-            $_GET['panels_ajax_tab_tab'] = $mininame;
+          if (substr_compare($_GET['q'], $trigger, -$trigger_length) === 0) {
+            $_GET['q'] = substr($_GET['q'], 0, ($path_length - $trigger_length));
+            $_GET['panels_ajax_tab_tab'] = $minipanel_name;
             break 2;
           }
         }
@@ -94,11 +95,10 @@ function panels_ajax_tab_boot() {
 }
 
 /**
- * Implements hook_element_info_alter
- *
- * Form actions should default to the panels-ajax-tab request URL, not the acutal request URI
+ * Implements hook_element_info_alter().
  */
 function panels_ajax_tab_element_info_alter(&$element_info) {
+  // Form actions should default to the panels-ajax-tab request URL, not the acutal request URI.
   if (arg(0) == 'panels_ajax_tab') {
     $headers = getallheaders();
     if (!empty($headers['X-Request-Path'])) {
@@ -108,18 +108,17 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 }
 
 /**
- * AHAH call-back for preview
+ * AHAH call-back for preview.
  */
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
-  $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
-
-  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
+  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists.
   drupal_static_reset('drupal_add_js');
   drupal_static_reset('drupal_add_css');
 
-  print theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
+  $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
+  echo theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 
-  exit;
+  drupal_exit();
 }
 
 function panels_ajax_tab_prepare_mini($mini, $context_string) {
@@ -140,7 +139,7 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
     if ($entity_type == 'node') {
       if (!node_access('view', $entity)) {
         drupal_access_denied();
-        exit();
+        drupal_exit();
       }
     }
 
@@ -154,7 +153,7 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   }
 
   if (empty($mini) || !empty($mini->disabled)) {
-    return;
+    return NULL;
   }
 
   $mini->display->owner = $mini;
@@ -235,7 +234,6 @@ function theme_panels_ajax_tab_ajax($vars) {
   return $output;
 }
 
-
 function theme_panels_ajax_tab_tabs_edit_form($variables) {
   $form = $variables['form'];
   $output = '';
@@ -272,7 +270,7 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
 }
 
 /**
- * compare callback to sort panels based on weight
+ * Compare callback to sort panels based on weight.
  */
 function panels_ajax_tab_compare_weight($a, $b) {
   return $a['weight'] - $b['weight'];

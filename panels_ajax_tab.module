@@ -79,13 +79,9 @@ function panels_ajax_tab_boot() {
           $path_length = strlen($_GET['q']);
           $trigger_length = strlen($trigger);
 
-          if ($trigger_length > $path_length) {
-            continue;
-          }
-
-          if (substr_compare($_GET['q'], $trigger, -$trigger_length) === 0) {
+          if ($trigger_length <= $path_length && substr_compare($_GET['q'], $trigger, -$trigger_length) === 0) {
             $_GET['q'] = substr($_GET['q'], 0, ($path_length - $trigger_length));
-            $_GET['panels_ajax_tab_tab'] = $minipanel_name;
+            PanelsAjaxTabProcessStorage::set('panels_ajax_tab_tab', $minipanel_name);
             break 2;
           }
         }
@@ -163,7 +159,6 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   return $mini;
 
 }
-
 
 function theme_panels_ajax_tab_tabs($vars) {
   foreach ($vars['tabs'] as $tab) {

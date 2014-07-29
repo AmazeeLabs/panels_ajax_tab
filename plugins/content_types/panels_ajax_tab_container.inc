@@ -61,9 +61,9 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   if ($tabs) {
     $tabs_keys = array_keys($tabs);
     $preloaded = reset($tabs_keys);
-    if ($clean_url && isset($_GET['panels_ajax_tab_tab'])) {
-      if ($tabs[$_GET['panels_ajax_tab_tab']]) {
-        $preloaded = $_GET['panels_ajax_tab_tab'];
+    if ($clean_url && $panels_ajax_tab_tab = PanelsAjaxTabProcessStorage::get('panels_ajax_tab_tab')) {
+      if ($tabs[$panels_ajax_tab_tab]) {
+        $preloaded = $panels_ajax_tab_tab;
       }
     }
 

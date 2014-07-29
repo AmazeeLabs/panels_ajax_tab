@@ -5,3 +5,4 @@ dependencies[] = panels
 dependencies[] = panels_mini
 dependencies[] = jquery_update
 package = Panels
+files[] = includes/PanelsAjaxTabProcessStorage.php

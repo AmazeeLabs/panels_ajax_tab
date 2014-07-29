@@ -157,7 +157,6 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   $mini->display->owner->id = $mini->name;
 
   return $mini;
-
 }
 
 function theme_panels_ajax_tab_tabs($vars) {

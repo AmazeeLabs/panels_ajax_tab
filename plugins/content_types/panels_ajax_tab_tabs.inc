@@ -94,7 +94,6 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
  * Provide the administrative title of a Ajax tab.
  */
 function panels_ajax_tab_tabs_content_type_admin_title($subtype, $conf) {
-
   return "Ajax Tab - " . $conf['container_id'];
 }
 
@@ -102,8 +101,6 @@ function panels_ajax_tab_tabs_content_type_admin_title($subtype, $conf) {
  * Display the administrative information for a Ajax tab .
  */
 function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf, $contexts) {
-  //return panels_ajax_tab_tabs_render($subtype, $conf, array(), $contexts);
-
   $data = new stdClass();
   $data->content = '';
 
@@ -116,7 +113,6 @@ function panels_ajax_tab_tabs_content_type_admin_info($subtype, $conf, $contexts
     }
   }
 
-  $content = '';
   $data->title = 'Panels Ajax Tabs - ' . implode(', ', $minipanels);
 
   return $data;
@@ -139,7 +135,6 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
   $form['mini_panels']['#tree'] = TRUE;
   foreach ($panels as $mini_panel) {
     $form['mini_panels'][$mini_panel['name']] = array(
-
       'selected' => array(
         '#type' => 'checkbox',
         '#default_value' => $mini_panel['selected'],

@@ -269,3 +269,26 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
 function panels_ajax_tab_compare_weight($a, $b) {
   return $a['weight'] - $b['weight'];
 }
+
+/**
+ * Workaround for non-Apache webserver where getallheaders() is not enabled.
+ *
+ * @see https://www.drupal.org/node/2110907
+ * @see http://php.net/manual/en/function.getallheaders.php
+ *
+ * @credit majksner at gmail dot com
+ */
+if (!function_exists('getallheaders')) {
+  function getallheaders() {
+    foreach ($_SERVER as $key=>$value) {
+      if (substr($key, 0, 5) === "HTTP_") {
+        $key = str_replace(" ", "-", ucwords(drupal_strtolower(str_replace("_", " ", substr($key, 5)))));
+        $out[$key] = $value;
+      }
+      else {
+        $out[$key] = $value;
+      }
+    }
+    return $out;
+  }
+}

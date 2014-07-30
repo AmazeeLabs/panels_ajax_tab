@@ -50,21 +50,25 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   $clean_url = $settings['clean_url'];
   $clean_url_delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
 
-  // sort and load the mini-panels
+  // Sort and load the mini-panels.
   $tabs = array();
   uasort($conf['mini_panels'], 'panels_ajax_tab_compare_weight');
-  $i = 0;
+  $is_not_first = FALSE;
   foreach ($conf['mini_panels'] as $panel_name => $panel_conf) {
     if ($panel_conf['selected']) {
 
-      // Set the URL ID - note the first one never has one regardless of what has been set
-      if ($i) $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : FALSE;
-      else $url_id = '';
+      // Set the URL ID - note the first one never has one regardless of what has been set.
+      if ($is_not_first) {
+        $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : FALSE;
+      }
+      else {
+        $url_id = '';
+      }
 
       if (!$url_id || !$conf['url_enabled']) {
         $href = url($_GET['q']);
       }
-      else if ($clean_url) {
+      elseif ($clean_url) {
         $href = url($_GET['q']) . $clean_url_delim . $url_id;
       }
       else {
@@ -80,7 +84,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
         'href' => $href
       );
 
-      $i++;
+      $is_not_first = TRUE;
     }
   }
 

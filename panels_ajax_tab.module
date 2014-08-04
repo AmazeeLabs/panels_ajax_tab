@@ -127,9 +127,10 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
 
   if ($context_string != 'none') {
     $parts = explode(':', $context_string);
-    $entity_type = strtolower($parts[0]);
+    $entity_type = drupal_strtolower($parts[0]);
     $entity_id = (int) $parts[1];
-    $entity = array_pop(entity_load($entity_type, array($entity_id)));
+    $entities = entity_load($entity_type, array($entity_id));
+    $entity = array_pop($entities);
 
     // If it's a node, check node-view permissions
     if ($entity_type == 'node') {

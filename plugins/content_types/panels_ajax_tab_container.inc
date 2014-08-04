@@ -44,7 +44,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   }
   else {
     $entity_type = $contexts[0]->type[2];
-    $entity_id = array_shift(entity_extract_ids($entity_type, $contexts[0]->data));
+    list($entity_id) = entity_extract_ids($entity_type, $contexts[0]->data);
     $context_string = $entity_type . ':' . $entity_id;
   }
 

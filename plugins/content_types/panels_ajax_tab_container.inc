@@ -1,21 +1,22 @@
 <?php
+
 /**
  * @file
- *
  * Contains the content type plugin for a Ajax tabs container.
+ *
  */
 
 $plugin = array(
-  'title' => t('AJAX Tab - Container'),
-  'admin title' => 'panels_ajax_tab_container_content_type_admin_title',
-  'description' => t('The AJAX content will be loaded within this pane'),
-  'single' => TRUE,
-  'category' => t('AJAX Container'),
+  'title'            => t('AJAX Tab - Container'),
+  'admin title'      => 'panels_ajax_tab_container_content_type_admin_title',
+  'description'      => t('The AJAX content will be loaded within this pane'),
+  'single'           => TRUE,
+  'category'         => t('AJAX Container'),
   'required context' => array(
     new ctools_context_optional(t('Entity Context'), 'entity'),
   ),
-  'render callback' => 'panels_ajax_tab_container_render',
-  'edit form' => 'panels_ajax_tab_container_edit_form'
+  'render callback'  => 'panels_ajax_tab_container_render',
+  'edit form'        => 'panels_ajax_tab_container_edit_form'
 );
 
 /**
@@ -44,7 +45,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   }
   else {
     $entity_type = $contexts[0]->type[2];
-    list($entity_id) = entity_extract_ids($entity_type, $contexts[0]->data);
+    $entity_id = array_shift(entity_extract_ids($entity_type, $contexts[0]->data));
     $context_string = $entity_type . ':' . $entity_id;
   }
 
@@ -59,16 +60,16 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   $content = '';
   $preloaded = '';
   if ($tabs) {
-    $tabs_keys = array_keys($tabs);
-    $preloaded = reset($tabs_keys);
-    if ($clean_url && $panels_ajax_tab_tab = PanelsAjaxTabProcessStorage::get('panels_ajax_tab_tab')) {
-      if ($tabs[$panels_ajax_tab_tab]) {
-        $preloaded = $panels_ajax_tab_tab;
+    $preloaded = reset(array_keys($tabs));
+    if ($clean_url && isset($_GET['panels_ajax_tab_tab'])) {
+      if ($tabs[$_GET['panels_ajax_tab_tab']]) {
+        $preloaded = $_GET['panels_ajax_tab_tab'];
       }
     }
 
     $mini = panels_mini_load($preloaded);
     $mini = panels_ajax_tab_prepare_mini($mini, $context_string);
+    $layout = panels_get_layout($mini->display->layout);
     $content = panels_render_display($mini->display);
   }
 

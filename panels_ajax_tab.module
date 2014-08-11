@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- *
- * Module file.
- */
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -13,18 +8,17 @@ function panels_ajax_tab_ctools_plugin_api() {
 }
 
 /**
- * Implements hook_ctools_plugin_directory().
+ * Implementation of hook_ctools_plugin_dierctory() to let the system know
+ * we implement plugins.
  */
 function panels_ajax_tab_ctools_plugin_directory($module, $plugin) {
   if ($plugin == 'content_types') {
     return 'plugins/' . $plugin;
   }
-
-  return NULL;
 }
 
 /**
- * Implements hook_menu().
+ * Implementation of hook_menu()
  */
 function panels_ajax_tab_menu() {
   $items = array();
@@ -42,7 +36,7 @@ function panels_ajax_tab_menu() {
 }
 
 /**
- * Implements hook_menu().
+ * Implementation of hook_menu()
  */
 function panels_ajax_tab_theme($existing, $type, $theme, $path) {
   return array(
@@ -62,26 +56,30 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements hook_boot().
+ * Implementation of hook_boot().
+ *
+ * IF Clean-URLs are enabled, check for them and modify the request as needed
  */
 function panels_ajax_tab_boot() {
-  // If Clean-URLs are enabled, check for them and modify the request as needed.
   $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
 
   if ($settings['clean_url']) {
-    $delimeter = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
+
+    $delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
 
     foreach ($settings['panes'] as $pane) {
-      foreach ($pane as $minipanel_name => $url_part) {
-        if ($url_part) {
-          $trigger = $delimeter . $url_part;
+      foreach ($pane as $mininame => $item) {
+        if ($item) {
+          $trigger = $delim . $item;
 
-          $path_length = strlen($_GET['q']);
-          $trigger_length = strlen($trigger);
+          $pathlen = strlen($_GET['q']);
+          $triggerlen = strlen($trigger);
 
-          if ($trigger_length <= $path_length && substr_compare($_GET['q'], $trigger, -$trigger_length) === 0) {
-            $_GET['q'] = substr($_GET['q'], 0, ($path_length - $trigger_length));
-            PanelsAjaxTabProcessStorage::set('panels_ajax_tab_tab', $minipanel_name);
+          if ($triggerlen > $pathlen) continue;
+
+          if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
+            $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
+            $_GET['panels_ajax_tab_tab'] = $mininame;
             break 2;
           }
         }
@@ -91,10 +89,11 @@ function panels_ajax_tab_boot() {
 }
 
 /**
- * Implements hook_element_info_alter().
+ * Implements hook_element_info_alter
+ *
+ * Form actions should default to the panels-ajax-tab request URL, not the acutal request URI
  */
 function panels_ajax_tab_element_info_alter(&$element_info) {
-  // Form actions should default to the panels-ajax-tab request URL, not the acutal request URI.
   if (arg(0) == 'panels_ajax_tab') {
     $headers = getallheaders();
     if (!empty($headers['X-Request-Path'])) {
@@ -104,17 +103,18 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 }
 
 /**
- * AHAH call-back for preview.
+ * AHAH call-back for preview
  */
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
-  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists.
+  $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
+
+  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
   drupal_static_reset('drupal_add_js');
   drupal_static_reset('drupal_add_css');
 
-  $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
-  echo theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
+  print theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 
-  drupal_exit();
+  exit;
 }
 
 function panels_ajax_tab_prepare_mini($mini, $context_string) {
@@ -127,16 +127,15 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
 
   if ($context_string != 'none') {
     $parts = explode(':', $context_string);
-    $entity_type = drupal_strtolower($parts[0]);
+    $entity_type = strtolower($parts[0]);
     $entity_id = (int) $parts[1];
-    $entities = entity_load($entity_type, array($entity_id));
-    $entity = array_pop($entities);
+    $entity = array_pop(entity_load($entity_type, array($entity_id)));
 
     // If it's a node, check node-view permissions
     if ($entity_type == 'node') {
       if (!node_access('view', $entity)) {
         drupal_access_denied();
-        drupal_exit();
+        exit();
       }
     }
 
@@ -150,7 +149,7 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   }
 
   if (empty($mini) || !empty($mini->disabled)) {
-    return NULL;
+    return;
   }
 
   $mini->display->owner = $mini;
@@ -158,13 +157,15 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   $mini->display->owner->id = $mini->name;
 
   return $mini;
+
 }
+
 
 function theme_panels_ajax_tab_tabs($vars) {
   foreach ($vars['tabs'] as $tab) {
     $url_enabled = (isset($tab['url_enabled']) ? $tab['url_enabled'] : 1);
 
-    $tabhtml = '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
+    $tabhtml =  '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
 
     // Add a hidden link for javascript enabled crawlers (but not normal web crawlers)
     $tabhtml .= '<a href="/panels_ajax_tab/' . $tab['mini_panel']->name . '/' . $vars['context_string'] . '/' . $url_enabled . '" rel="nofollow" style="display:none" class="js-crawler-link"></a>';
@@ -183,7 +184,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   $layout = panels_get_layout($mini->display->layout);
   $panels_output = panels_render_display($mini->display);
 
-  $output = '';
+  $output  = '';
   $output .= '<?xml version="1.0" encoding="UTF-8" ?>';
   $output .= '
     <html version="HTML+RDFa+MathML 1.1"
@@ -202,7 +203,7 @@ function theme_panels_ajax_tab_ajax($vars) {
 
   //Need to call page alter so that modules like google analytics can add js
   //We only invoke the page alter if url_enabled is true
-  if ($vars['url_enabled']) {
+  if($vars['url_enabled']) {
     $page = array();
     drupal_alter('page', $page);
   }
@@ -229,6 +230,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   return $output;
 }
 
+
 function theme_panels_ajax_tab_tabs_edit_form($variables) {
   $form = $variables['form'];
   $output = '';
@@ -238,7 +240,7 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
       break;
     }
     else {
-      $output .= drupal_render($form[$element]);
+     $output .= drupal_render($form[$element]);
     }
   }
   $rows = array();
@@ -265,31 +267,8 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
 }
 
 /**
- * Compare callback to sort panels based on weight.
+ * compare callback to sort panels based on weight
  */
 function panels_ajax_tab_compare_weight($a, $b) {
   return $a['weight'] - $b['weight'];
-}
-
-/**
- * Workaround for non-Apache webserver where getallheaders() is not enabled.
- *
- * @see https://www.drupal.org/node/2110907
- * @see http://php.net/manual/en/function.getallheaders.php
- *
- * @credit majksner at gmail dot com
- */
-if (!function_exists('getallheaders')) {
-  function getallheaders() {
-    foreach ($_SERVER as $key=>$value) {
-      if (substr($key, 0, 5) === "HTTP_") {
-        $key = str_replace(" ", "-", ucwords(drupal_strtolower(str_replace("_", " ", substr($key, 5)))));
-        $out[$key] = $value;
-      }
-      else {
-        $out[$key] = $value;
-      }
-    }
-    return $out;
-  }
 }

@@ -94,13 +94,14 @@
         // If we have it cached we don't need to do AJAX
         if (typeof $tab.data('panels-ajax-tab-cache') !== "undefined") {
           $('#panels-ajax-tab-container-' + target_id).html($tab.data('panels-ajax-tab-cache').markup);
-          Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
           
           // Merge the js settings
           if ($tab.data('panels-ajax-tab-cache').js_settings != undefined) {
             var settings = $.extend({}, Drupal.settings, $tab.data('panels-ajax-tab-cache').js_settings);
             Drupal.settings = settings;
           }
+          
+          Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
           
           loadedEvent.data.cached = true;
           
@@ -129,15 +130,15 @@
             }
           }).done(function(data) {
             $('#panels-ajax-tab-container-' + target_id).html(data['markup']);
-            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
-            $(container).data('loading', false);
             
             // Merge the js settings
             if (data.js_settings != undefined) {
               var settings = $.extend({}, Drupal.settings, data.js_settings);
               Drupal.settings = settings;
-
             }
+            
+            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
+            $(container).data('loading', false);
             
             // Cache the contents
             $tab.data('panels-ajax-tab-cache', data);

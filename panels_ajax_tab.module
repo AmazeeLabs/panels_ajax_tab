@@ -80,6 +80,7 @@ function panels_ajax_tab_boot() {
           if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
             $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
             $_GET['panels_ajax_tab_tab'] = $mininame;
+            $_GET['panels_ajax_tab_trigger'] = $item;
             break 2;
           }
         }
@@ -112,8 +113,6 @@ function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   drupal_static_reset('drupal_add_js');
   drupal_static_reset('drupal_add_css');
 
-
-
   $output = theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 
   // Get the settings so we can merge them in the callback
@@ -126,6 +125,10 @@ function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   if (!empty($javascript['settings'])) {
     $response['js_settings'] = $javascript['settings'];
   }
+
+  // Allow other modules to alter the response
+  $trigger = !empty($_GET['panels_ajax_tab_trigger']) ? $_GET['panels_ajax_tab_trigger'] : '';
+  drupal_alter('panels_ajax_tab_response', $response, $panel_name, $context_string, $trigger);
 
   drupal_json_output($response);
   exit;
@@ -140,10 +143,11 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   }
 
   if ($context_string != 'none') {
-    $parts = explode(':', $context_string);
-    $entity_type = strtolower($parts[0]);
-    $entity_id = (int) $parts[1];
-    $entity = array_pop(entity_load($entity_type, array($entity_id)));
+    $entity = panels_ajax_tab_get_context($context_string);
+    if (!$entity) {
+      drupal_not_found();
+      exit();
+    }
 
     // If it's a node, check node-view permissions
     if ($entity_type == 'node') {
@@ -171,15 +175,24 @@ function panels_ajax_tab_prepare_mini($mini, $context_string) {
   $mini->display->owner->id = $mini->name;
 
   return $mini;
-
 }
 
+function panels_ajax_tab_get_context($context_string) {
+  if (empty($context_string) || $context_string == 'none') {
+    return FALSE;
+  }
+  $parts = explode(':', $context_string);
+  $entity_type = strtolower($parts[0]);
+  $entity_id = (int) $parts[1];
+  $entity = array_pop(entity_load($entity_type, array($entity_id)));
+  return $entity;
+}
 
 function theme_panels_ajax_tab_tabs($vars) {
   foreach ($vars['tabs'] as $tab) {
     $url_enabled = (isset($tab['url_enabled']) ? $tab['url_enabled'] : 1);
 
-    $tabhtml =  '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
+    $tabhtml =  '<a href="' . $tab['href'] . '" class="panels-ajax-tab-tab" data-panel-name="' . $tab['mini_panel']->name . '" data-target-id="' . $vars['tab_container_id'] . '" data-entity-context="' . $vars['context_string'] . '" data-trigger="' . $tab['url_id'] . '" data-url-enabled="' . $url_enabled . '">' . $tab['title'] . '</a>';
 
     // Add a hidden link for javascript enabled crawlers (but not normal web crawlers)
     $tabhtml .= '<a href="/panels_ajax_tab/' . $tab['mini_panel']->name . '/' . $vars['context_string'] . '/' . $url_enabled . '" rel="nofollow" style="display:none" class="js-crawler-link"></a>';

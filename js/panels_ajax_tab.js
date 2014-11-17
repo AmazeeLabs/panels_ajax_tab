@@ -84,6 +84,7 @@
         var panel_name = $tab.data('panel-name');
         var entity_context = $tab.data('entity-context');
         var url_enabled = $tab.data('url-enabled');
+        var trigger = $tab.data('trigger');
         // Create a new jQuery.Event for
         var loadedEvent = $.Event("panelsAjaxTabsLoaded");
         loadedEvent.data = {
@@ -117,7 +118,7 @@
         }
         else {
           $.ajax({
-            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context + '/' + url_enabled,
+            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context + '/' + url_enabled + '?panels_ajax_tab_trigger=' + trigger,
             datatype: 'html',
             headers: {"X-Request-Path": document.location.pathname},
             cache: true,

@@ -115,16 +115,8 @@ function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
 
   $output = theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 
-  // Get the settings so we can merge them in the callback
-  $javascript = drupal_add_js();
-
   $response = array();
   $response['markup'] = $output;
-
-  // Add settings if there are some
-  if (!empty($javascript['settings'])) {
-    $response['js_settings'] = $javascript['settings'];
-  }
 
   // Allow other modules to alter the response
   $trigger = !empty($_GET['panels_ajax_tab_trigger']) ? $_GET['panels_ajax_tab_trigger'] : '';

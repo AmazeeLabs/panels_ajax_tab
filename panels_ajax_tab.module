@@ -228,8 +228,12 @@ function theme_panels_ajax_tab_ajax($vars) {
     drupal_alter('page', $page);
   }
 
+  // Get the javascript and filter out the default misc/drupal.js - it's already been added by the calling page
+  $javascript = drupal_add_js();
+  unset($javascript['misc/drupal.js']);
+
   // Add the javascript.
-  $output .= drupal_get_js();
+  $output .= drupal_get_js('header', $javascript);
 
   // Add CSS
   $output .= drupal_get_css();

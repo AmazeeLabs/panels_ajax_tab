@@ -236,14 +236,8 @@ function theme_panels_ajax_tab_ajax($vars) {
     drupal_alter('page', $page);
   }
 
-  // Get the javascript and filter out the default misc/drupal.js - it's already been added by the calling page
-  $javascript = drupal_add_js();
-  unset($javascript['misc/drupal.js']);
-
-  // Settings are handled in the ajax page callback
-  unset($javascript['settings']);
-
-  $output .= drupal_get_js('header', $javascript);
+  // Add the javascript.
+  $output .= drupal_get_js();
 
   // Add CSS
   $output .= drupal_get_css();

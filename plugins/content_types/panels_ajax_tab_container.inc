@@ -59,8 +59,8 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
 
   $loading_img = array(
     'path' => drupal_get_path('module', 'panels_ajax_tab') . '/images/loading.gif', 
-    'alt' => 'Loading',
-    'title' => 'Loading',
+    'alt' => t('Loading'),
+    'title' => t('Loading'),
     'attributes' => array('class' => 'loading'),
   );
   $content = '<div class="panels-ajax-tab-loading" style ="display:none">' . theme('image', $loading_img) . '</div>';

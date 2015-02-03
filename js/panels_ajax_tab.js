@@ -2,7 +2,7 @@
   // Check jQuery version for 1.6 or higher
   if ($().jquery.split(".")[0] == "1" && parseInt($().jquery.split(".")[1]) < 6) {
     if (typeof console == "object") {
-      console.eror('Panels Ajax Tab Error: jQuery 1.6 or higher required.');
+      console.error('Panels Ajax Tab Error: jQuery 1.6 or higher required.');
     }
   }
 
@@ -77,7 +77,7 @@
         var $tab = $(this);
         var container = $tab.parents('.panels-ajax-tab:first');
         
-        // If it's already in the process of loading, dont do anything
+        // If it's already in the process of loading, don't do anything
         if ($(container).data('loading') === true) {
           return true;
         }          
@@ -143,13 +143,13 @@
             }
           }).done(function(data) {
             $('#panels-ajax-tab-container-' + target_id).children('.panels-ajax-tab-loading').hide();
-            $('#panels-ajax-tab-container-' + target_id).append('<div class="panels-ajax-tab-wrap-' +panel_name +'">' + data['markup'] + '</div>')
+            $('#panels-ajax-tab-container-' + target_id).append('<div class="panels-ajax-tab-wrap-' + panel_name +'">' + data['markup'] + '</div>')
 
             // Trigger jQuery Event
             $(document).trigger(preBehaviorEvent, preBehaviorEvent.data);
 
             // Attach drupal behaviors
-            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id + ' .panels-ajax-tab-wrap-' +panel_name)[0]);
+            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id + ' .panels-ajax-tab-wrap-' + panel_name)[0]);
             $(container).data('loading', false);
 
             // Trigger optional callback

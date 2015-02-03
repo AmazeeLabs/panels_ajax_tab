@@ -1,4 +1,11 @@
 (function($) {
+  // Check jQuery version for 1.6 or higher
+  if ($().jquery.split(".")[0] == "1" && parseInt($().jquery.split(".")[1]) < 6) {
+    if (typeof console == "object") {
+      console.eror('Panels Ajax Tab Error: jQuery 1.6 or higher required.');
+    }
+  }
+
   Drupal.behaviors.panels_ajax_tabs = {
     attach: function(context) {
         $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-processed)', context).once('panels-ajax-tabs-once', function() {  
@@ -40,11 +47,6 @@
           }
           else {
             currentTab = tabs.filter('*[data-panel-name="' + preloaded + '"]');
-            // Prime the cache from the preloaded content
-            var cache = {
-                markup: $('#panels-ajax-tab-container-' + target_id).html(),
-            };
-            currentTab.data('panels-ajax-tab-cache', cache);
           }
           
           currentTab.addClass('panels-ajax-tabs-first-loaded');
@@ -76,8 +78,9 @@
         var container = $tab.parents('.panels-ajax-tab:first');
         
         // If it's already in the process of loading, dont do anything
-        if ($(container).data('loading') === true)
+        if ($(container).data('loading') === true) {
           return true;
+        }          
         $(container).data('loading', true);
 
         var target_id = $tab.data('target-id');
@@ -85,20 +88,26 @@
         var entity_context = $tab.data('entity-context');
         var url_enabled = $tab.data('url-enabled');
         var trigger = $tab.data('trigger');
-        // Create a new jQuery.Event for
-        var loadedEvent = $.Event("panelsAjaxTabsLoaded");
-        loadedEvent.data = {
-            containerId: '#panels-ajax-tab-container-' + target_id,
-            callback: callback,
-        };
+
+        // Create a few jQuery.Event events for a panel being loaded so that other code may hook into it
+        var eventData = {
+          tab: this, 
+          tabObject: $tab,
+          containerId: '#panels-ajax-tab-container-' + target_id,
+          callback: callback, 
+          cache: false, 
+        }
+        var preLoadEvent     = $.Event("panelsAjaxTabsPreLoad", eventData);      // We are about to do an ajax request. Will have data.cache = true if cache was used.
+        var preBehaviorEvent = $.Event("panelsAjaxTabsPreBehavior", eventData);  // Content is loaded but behaviors have not fired. Not triggered when using cache.
+        var loadedEvent      = $.Event("panelsAjaxTabsLoaded", eventData);       // Everything is done. Will have data.cache = true if cache was used.
         
         // If we have it cached we don't need to do AJAX
-        if (typeof $tab.data('panels-ajax-tab-cache') !== "undefined") {
-          $('#panels-ajax-tab-container-' + target_id).html($tab.data('panels-ajax-tab-cache').markup);
+        if ($('#panels-ajax-tab-container-' + target_id).children('.panels-ajax-tab-wrap-' + panel_name).length) {
+          preLoadEvent.cached = true;
+          $(document).trigger(preLoadEvent, preLoadEvent.data);   
 
-          Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
-          
-          loadedEvent.data.cached = true;
+          $('#panels-ajax-tab-container-' + target_id).children().hide();
+          $('#panels-ajax-tab-container-' + target_id).children('.panels-ajax-tab-wrap-' + panel_name).show();
           
           $(container).data('loading', false);
           
@@ -106,40 +115,49 @@
           if (callback) {
             callback.call(this, $tab);
           }
-          
-          loadedEvent.tabObject = $tab;
-          $(document).trigger(loadedEvent, loadedEvent.data);            
+
+          // Trigger jQuery Event
+          loadedEvent.cached = true;
+          $(document).trigger(loadedEvent);            
         }
         else {
+          // Do AJAX request
           $.ajax({
             url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context + '/' + url_enabled + '?panels_ajax_tab_trigger=' + trigger,
             datatype: 'html',
             headers: {"X-Request-Path": document.location.pathname},
             cache: true,
             beforeSend: function(xhr) {
-              $('#panels-ajax-tab-container-' + target_id).html('<img class="loading" src="' + Drupal.settings.basePath + Drupal.settings.panel_ajax_tab.path + '/images/loading.gif"/>');
+              // Trigger jQuery Event
+              $(document).trigger(preLoadEvent);   
+
+              // Hide content and show the spinning loading wheel
+              $('#panels-ajax-tab-container-' + target_id).children().hide();
+              $('#panels-ajax-tab-container-' + target_id).children('.panels-ajax-tab-loading').show();
             },
             error: function(jqXHR, textStatus, errorThrown) {
-              $('#panels-ajax-tab-container-' + target_id).html('Error: ' + errorThrown);
+              if (typeof console == "object") {
+                console.error('Panels Ajax Tab Error: ' + errorThrown);
+              }
               $(container).data('loading', false);
             }
           }).done(function(data) {
-            $('#panels-ajax-tab-container-' + target_id).html(data['markup']);
+            $('#panels-ajax-tab-container-' + target_id).children('.panels-ajax-tab-loading').hide();
+            $('#panels-ajax-tab-container-' + target_id).append('<div class="panels-ajax-tab-wrap-' +panel_name +'">' + data['markup'] + '</div>')
 
-            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id)[0]);
+            // Trigger jQuery Event
+            $(document).trigger(preBehaviorEvent, preBehaviorEvent.data);
+
+            // Attach drupal behaviors
+            Drupal.attachBehaviors($('#panels-ajax-tab-container-' + target_id + ' .panels-ajax-tab-wrap-' +panel_name)[0]);
             $(container).data('loading', false);
-            
-            // Cache the contents
-            $tab.data('panels-ajax-tab-cache', data);
 
             // Trigger optional callback
             if (callback) {
               callback.call(this, $tab);
             }
-            
-            loadedEvent.data.cached = false;
-            loadedEvent.tabObject = $tab;
-            $(document).trigger(loadedEvent, loadedEvent.data);            
+            // Trigger jQuery Event
+            $(document).trigger(loadedEvent);            
           })
         }
         $tab.parent().siblings().removeClass('active');

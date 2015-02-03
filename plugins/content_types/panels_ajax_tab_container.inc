@@ -57,7 +57,13 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   $tabs = isset($settings['panes'][$tab_container_id]) ? $settings['panes'][$tab_container_id] : array();
   $clean_url = isset($settings['clean_url']) ? $settings['clean_url'] : FALSE;
 
-  $content = '';
+  $loading_img = array(
+    'path' => drupal_get_path('module', 'panels_ajax_tab') . '/images/loading.gif', 
+    'alt' => 'Loading',
+    'title' => 'Loading',
+    'attributes' => array('class' => 'loading'),
+  );
+  $content = '<div class="panels-ajax-tab-loading" style ="display:none">' . theme('image', $loading_img) . '</div>';
   $preloaded = '';
   if ($tabs) {
     $preloaded = reset(array_keys($tabs));
@@ -70,7 +76,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
     $mini = panels_mini_load($preloaded);
     $mini = panels_ajax_tab_prepare_mini($mini, $context_string);
     $layout = panels_get_layout($mini->display->layout);
-    $content = panels_render_display($mini->display);
+    $content .= '<div class="panels-ajax-tab-wrap-' . $preloaded . '">' . panels_render_display($mini->display) . '</div>';
   }
 
   // Render the container

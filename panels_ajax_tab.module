@@ -247,6 +247,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   $output .= '<div class="panels-ajax-tab-panel panels-ajax-tab-panel-' . str_replace('_', '-', $mini->name) . '">';
   $output .= $panels_output;
   $output .= '</div>';
+  $output .= drupal_get_js('footer', $javascript);
   $output .= '</body></html>';
 
   return $output;

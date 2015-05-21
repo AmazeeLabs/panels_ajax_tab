@@ -109,9 +109,9 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
 
-  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
+  // Clear the JavaScript that is not related to the panels being rendered.
+  // Can't do this for CSS because it breaks drupal_add_css inheritance.
   drupal_static_reset('drupal_add_js');
-  drupal_static_reset('drupal_add_css');
 
   $output = theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 

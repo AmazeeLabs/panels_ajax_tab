@@ -27,7 +27,6 @@ function panels_ajax_tab_container_content_type_admin_title($subtype, $conf) {
 }
 
 function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contexts) {
-  static $default_tab_container_id = 0;
   ctools_include('context');
   ctools_include('plugins', 'panels');
   $block = new stdClass();
@@ -52,10 +51,20 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   // Get the tab-container-id
   $tab_container_id = $conf['container_id'];
 
-  // If we have clean-urls turned on we can pre-load the content
-  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'panes' => array()));
-  $tabs = isset($settings['panes'][$tab_container_id]) ? $settings['panes'][$tab_container_id] : array();
-  $clean_url = isset($settings['clean_url']) ? $settings['clean_url'] : FALSE;
+  // Find the panel_tabs config associated with this container
+  $config_cache = cache_get('panels_ajax_tab_config_cache');
+  if (!empty($config_cache)) {
+    $configs = $config_cache->data;
+  }
+  else {
+    $configs = panels_ajax_tab_config_cache();
+  }
+  foreach ($configs as $config) {
+    if ($config['container_id'] == $tab_container_id) {
+      $tab_config = $config;
+      break;
+    }
+  }
 
   $loading_img = array(
     'path' => drupal_get_path('module', 'panels_ajax_tab') . '/images/loading.gif', 
@@ -65,10 +74,10 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   );
   $content = '<div class="panels-ajax-tab-loading" style ="display:none">' . theme('image', $loading_img) . '</div>';
   $preloaded = '';
-  if ($tabs) {
-    $preloaded = reset(array_keys($tabs));
-    if ($clean_url && isset($_GET['panels_ajax_tab_tab'])) {
-      if ($tabs[$_GET['panels_ajax_tab_tab']]) {
+  if (!empty($tab_config)) {
+    $preloaded = reset(array_keys($tab_config['mini_panels']));
+    if ($tab_config['clean_url'] && isset($_GET['panels_ajax_tab_tab'])) {
+      if (!empty($tab_config['mini_panels'][$_GET['panels_ajax_tab_tab']])) {
         $preloaded = $_GET['panels_ajax_tab_tab'];
       }
     }
@@ -80,9 +89,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   }
 
   // Render the container
-  $block->content .= theme('panels_ajax_tab_container', array('tab_container_id' => $tab_container_id, 'context_string' => $context_string, 'content' => $content, 'preloaded' => $preloaded, 'clean_url' => $clean_url));
-
-  $default_tab_container_id++;
+  $block->content .= theme('panels_ajax_tab_container', array('tab_container_id' => $tab_container_id, 'content' => $content, 'preloaded' => $preloaded)); 
 
   return $block;
 }

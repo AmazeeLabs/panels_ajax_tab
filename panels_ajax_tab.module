@@ -44,7 +44,7 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
       'variables' => array('tabs' => array(), 'tab_container_id' => NULL, 'context_string' => NULL, 'clean_url' => FALSE, 'clean_url_delim' => '/'),
     ),
     'panels_ajax_tab_container' => array(
-      'variables' => array('tab_container_id' => NULL, 'url_id' => NULL, 'context_string' => NULL, 'preloaded' => '', 'clean_url' => FALSE, 'clean_url_delim' => '/'),
+      'variables' => array('tab_container_id' => NULL, 'preloaded' => '', 'content' => ''),
     ),
     'panels_ajax_tab_ajax' => array(
       'variables' => array('minipanel' => NULL),
@@ -58,31 +58,38 @@ function panels_ajax_tab_theme($existing, $type, $theme, $path) {
 /**
  * Implementation of hook_boot().
  *
- * IF Clean-URLs are enabled, check for them and modify the request as needed
+ * IF Clean-URLs are enabled for any ajax-tab pane, we strip the URL identifier off the end of the URL
+ * and place it in $_GET['panels_ajax_tab_trigger']. We additionally put the mini-panel this corresponds
+ * to in $_GET['panels_ajax_tab_tab'].  Once this is done drupal can handle the URL normally (it won't get
+ * confused by the identifier on the end of the URL) and panels-ajax-tabs will look for what tab to load by
+ * inspecting $_GET['panels_ajax_tab_tab']. In Essense, it transforms a url like http://example.com/path/to/drupal/page.mytab to
+ * a url like http://example.com/path/to/drupal/page?panels_ajax_tab_trigger=mytab&panels_ajax_tab_tab=mypanel
  */
 function panels_ajax_tab_boot() {
-  $settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
+  $config_cache = cache_get('panels_ajax_tab_config_cache');
 
-  if ($settings['clean_url']) {
+  // If there are no url-cache settings, ensure that the url-cache is rebuilt for next-time and skip
+  if (empty($config_cache)) {
+    register_shutdown_function('panels_ajax_tab_config_cache');
+    return;
+  }
 
-    $delim = isset($settings['clean_url_delim']) ? $settings['clean_url_delim'] : '/';
+  foreach ($config_cache->data as $config) {
+    if ($config['clean_url']) {
+      foreach ($config['mini_panels'] as $panel_id => $panel_conf) {
+        $delim = $config['clean_url_delim'];
+        $trigger = $delim . $panel_conf['url_id'];
+        
+        $pathlen = strlen($_GET['q']);
+        $triggerlen = strlen($trigger);
+        
+        if ($triggerlen > $pathlen) continue;
 
-    foreach ($settings['panes'] as $pane) {
-      foreach ($pane as $mininame => $item) {
-        if ($item) {
-          $trigger = $delim . $item;
-
-          $pathlen = strlen($_GET['q']);
-          $triggerlen = strlen($trigger);
-
-          if ($triggerlen > $pathlen) continue;
-
-          if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
-            $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
-            $_GET['panels_ajax_tab_tab'] = $mininame;
-            $_GET['panels_ajax_tab_trigger'] = $item;
-            break 2;
-          }
+        if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
+          $_GET['q'] = substr($_GET['q'], 0, ($pathlen - $triggerlen));
+          $_GET['panels_ajax_tab_tab'] = $panel_id;
+          $_GET['panels_ajax_tab_trigger'] = $panel_conf['url_id'];
+          return;
         }
       }
     }
@@ -108,10 +115,6 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
  */
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
-
-  // Clear the JavaScript and CSS that are not related to the panels being rendered - they already exists
-  drupal_static_reset('drupal_add_js');
-  drupal_static_reset('drupal_add_css');
 
   $output = theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
 
@@ -199,11 +202,52 @@ function theme_panels_ajax_tab_container($vars) {
   return '<div data-panels-ajax-tab-preloaded="' . $vars['preloaded'] . '" id="panels-ajax-tab-container-' . $vars['tab_container_id'] . '" class="panels-ajax-tab-container">' . $vars['content'] . '</div>';
 }
 
+/**
+ * Theme function that renders the AHAH markup for a mini-panel
+ */
 function theme_panels_ajax_tab_ajax($vars) {
+  // Grab all CSS for later comparison before clearing it
+  $previous_css = drupal_add_css();
+  
+  // Clear the JavaScript & CSS not related to the pane being rendered.
+  drupal_static_reset('drupal_add_js');
+  drupal_static_reset('drupal_add_css');
+  
+  // Render the pane
   $mini = $vars['minipanel'];
   $layout = panels_get_layout($mini->display->layout);
   $panels_output = panels_render_display($mini->display);
 
+  // Grab new CSS files related to this pane
+  $css = drupal_add_css();
+
+  // Assign a unique basename to new stylesheets
+  foreach ($css as $key => $item) {
+    if ($item['type'] == 'file') {
+      // If not defined, force a unique basename for this file.
+      $basename = isset($item['basename']) ? $item['basename'] : drupal_basename($item['data']);
+      $item['basename'] = $basename;
+      $css[$key] = $item;
+    }
+  }
+  
+  // Iterate through previous CSS stylesheets, and add any with matching basenames to allow
+  // for proper overrides when calling drupal_get_css($css)
+  foreach ($previous_css as $key => $item) {
+    if ($item['type'] == 'file') {
+      // If not defined, force a unique basename for this file.
+      $basename = isset($item['basename']) ? $item['basename'] : drupal_basename($item['data']);
+      $item['basename'] = $basename;
+      $previous_css[$key] = $item;
+      foreach ($css as $key2 => $item2) {
+        // Make sure to append previous stylesheets with matching basenames to the new CSS array
+        if ($item['basename'] == $item2['basename']) {
+          $css[$key] = $previous_css[$key];    
+        }  
+      }      
+    }
+  }  
+   
   $output  = '';
   $output .= '<?xml version="1.0" encoding="UTF-8" ?>';
   $output .= '
@@ -236,7 +280,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   $output .= drupal_get_js('header', $javascript);
 
   // Add CSS
-  $output .= drupal_get_css();
+  $output .= drupal_get_css($css);
   $output .= "<link rel='stylesheet' type='text/css' href='" . base_path() . $layout['path'] . '/' . $layout['css'] . "' />";
 
   $output .= '</head>';
@@ -247,6 +291,7 @@ function theme_panels_ajax_tab_ajax($vars) {
   $output .= '<div class="panels-ajax-tab-panel panels-ajax-tab-panel-' . str_replace('_', '-', $mini->name) . '">';
   $output .= $panels_output;
   $output .= '</div>';
+  $output .= drupal_get_js('footer', $javascript);
   $output .= '</body></html>';
 
   return $output;
@@ -289,8 +334,124 @@ function theme_panels_ajax_tab_tabs_edit_form($variables) {
 }
 
 /**
- * compare callback to sort panels based on weight
+ * Implements hook_flush_caches().
  */
-function panels_ajax_tab_compare_weight($a, $b) {
-  return $a['weight'] - $b['weight'];
+function panels_ajax_tab_flush_caches() {
+   // After caches are cleared we will run panels_ajax_tab_config_cache to immidiately rebuild the url-cache
+   register_shutdown_function('panels_ajax_tab_config_cache');
+
+   // We don't want to add any custom cache-tables, so just return an empty array
+   return array();
+}
+
+/**
+ * Implements hook_cron().
+ */
+function panels_ajax_tab_cron() {
+   panels_ajax_tab_config_cache();
+}
+
+/**
+ * Rebuild the URL cache
+ * 
+ * URL suffix information is needed on boot, but it cannot be generated at boot time, so we generate it seperately and store 
+ * it in a cache item.
+ */
+function panels_ajax_tab_config_cache() {
+  $configs = panels_ajax_tab_get_config();
+  cache_set('panels_ajax_tab_config_cache', $configs);
+  return $configs;
+}
+
+/**
+ * Get a list of all panels-ajax-tab configs
+ * 
+ * This is used to build a list url suffixes to process at boot if so enabled
+ */
+function panels_ajax_tab_get_config() {
+  $config = array();
+
+  // Mini panels
+  if (module_exists('panels_mini')) {
+    $panels = panels_mini_load_all();
+    foreach ($panels as $panel) {
+      if (!empty($panel->display->content)) {
+        foreach ($panel->display->content as $pid => $pane) {
+          if (in_array($pane->type, array('panels_ajax_tab_tabs', 'highwire_panel_tabs'))) {
+            $config[$pid] = $pane->configuration;
+            $config[$pid]['plugin_type'] = $pane->type;
+          }
+        }
+      }
+    }
+  }
+
+  // Page-manager pages
+  if (module_exists('page_manager')) {
+    // Now check all panel pages and ignore all mini panels
+    ctools_include('page', 'page_manager', 'plugins/tasks');
+    ctools_include('page_manager.admin', 'page_manager', '');
+    ctools_include('export');
+     
+    $tasks = page_manager_get_tasks_by_type('page');
+    $pages = array();
+     
+    foreach ($tasks as $task) {
+      if ($task_pages = page_manager_load_task_handlers($task)) {
+        $pages = array_merge($pages, $task_pages);
+      }
+    }
+     
+    // Not all display objects are loaded, make sure to load them
+    foreach ($pages as &$page) {
+      if (empty($page->conf['display']) && !empty($page->conf['did'])) {
+        $page->conf['display'] = panels_load_display($page->conf['did']);
+      }
+    }
+
+    foreach ($pages as $page) {
+      if (!$page->disabled && !empty($page->conf['display']->content)) {
+        foreach ($page->conf['display']->content as $pid => $pane) {
+          if (in_array($pane->type, array('panels_ajax_tab_tabs', 'highwire_panel_tabs'))) {
+            $config[$pid] = $pane->configuration;
+          }
+        }
+      }
+    }
+  }
+
+  // Post-process the configurations
+  $old_settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
+  foreach ($config as &$conf) {
+    // Remove any unselected mini-panels from the config
+    foreach ($conf['mini_panels'] as $panel_id => $panel_conf) {
+      if (!$panel_conf['selected']) {
+        unset($conf['mini_panels'][$panel_id]);
+      }
+    }
+
+    // Sort remaining panels
+    uasort($conf['mini_panels'], 'drupal_sort_weight');
+
+    // Mix in any missing settings. Some settings could be missing due to upgrade path.
+    if (!isset($conf['clean_url'])) {
+      $conf['clean_url'] = $old_settings['clean_url'];
+    }
+    if (!isset($conf['clean_url_delim'])) {
+      $conf['clean_url_delim'] = $old_settings['clean_url_delim'];
+    }
+  }
+
+
+  // THIS GOES IN AN ALTER HOOK
+  $old_settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
+  foreach ($config as &$conf) {
+    if ($conf['plugin_type'] == 'highwire_panel_tabs') {
+      if (!isset($conf['highwire_panel_tab'])) {
+        $conf['highwire_panel_tab'] = $old_settings['highwire_panel_tab'];
+      }
+    }
+  }
+
+  return $config;
 }

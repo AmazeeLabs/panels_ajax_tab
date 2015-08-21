@@ -22,7 +22,8 @@
 
               // Push the history
               if (typeof window.history.pushState != 'undefined' && $(this).data('url-enabled') == 1) {
-                window.history.pushState({'tab':$(this).data('panel-name')}, $(this).html(), $(this).attr('href'));
+                var href = $(this).attr('href') ? $(this).attr('href') : location.pathname;
+                window.history.pushState({'tab':$(this).data('panel-name')}, $(this).html(), href);
               }
               
               if (!$(this).parent().hasClass('active')) {

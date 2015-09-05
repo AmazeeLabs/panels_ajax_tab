@@ -64,14 +64,20 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
     if ($panel_conf['selected']) {
 
       // Set the URL ID - note the first one never has one regardless of what has been set
-      if ($i) $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $panel_name;
-      else $url_id = '';
+      if ($i) {
+        $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $panel_name;
+        $url_base = drupal_is_front_page() ? base_path() . variable_get('site_frontpage') : url($_GET['q']);
+      }
+      else {
+        $url_id = '';
+        $url_base = drupal_is_front_page() ? base_path() : url($_GET['q']);
+      }
 
       if (!$url_id || !$conf['url_enabled']) {
-        $href = $conf['clean_url'] ? url($_GET['q']) : '';
+        $href = $conf['clean_url'] ? $url_base : '';
       }
       else if ($conf['clean_url']) {
-        $href = url($_GET['q']) . $conf['clean_url_delim'] . $url_id;
+        $href = $url_base . $conf['clean_url_delim'] . $url_id;
       }
       else {
         $href = '#' . $url_id;
@@ -89,7 +95,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
       $i++;
     }
   }
-
+  
   // Render the tabs
   $block->content .= theme('panels_ajax_tab_tabs', array('tabs' => $tabs, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string, 'clean_url' => $conf['clean_url']));
 

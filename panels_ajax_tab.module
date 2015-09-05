@@ -216,6 +216,9 @@ function theme_panels_ajax_tab_ajax($vars) {
   // Render the pane
   $mini = $vars['minipanel'];
   $layout = panels_get_layout($mini->display->layout);
+  if (empty($mini->display->cache_key)) {
+    $mini->display->cache_key = $mini->name;
+  }
   $panels_output = panels_render_display($mini->display);
 
   // Grab new CSS files related to this pane

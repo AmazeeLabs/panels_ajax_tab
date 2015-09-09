@@ -395,13 +395,19 @@ function panels_ajax_tab_get_config() {
     ctools_include('page', 'page_manager', 'plugins/tasks');
     ctools_include('page_manager.admin', 'page_manager', '');
     ctools_include('export');
-     
+
     $tasks = page_manager_get_tasks_by_type('page');
     $pages = array();
-     
+    
     foreach ($tasks as $task) {
       if ($task_pages = page_manager_load_task_handlers($task)) {
         $pages = array_merge($pages, $task_pages);
+      }
+      if ($subtasks = page_manager_get_task_subtasks($task)) {
+        foreach ($subtasks as $subtask) {
+          $task_pages = page_manager_load_task_handlers($subtask);
+          $pages = array_merge($pages, $task_pages);
+        }
       }
     }
      
@@ -413,7 +419,7 @@ function panels_ajax_tab_get_config() {
     }
 
     foreach ($pages as $page) {
-      if (!$page->disabled && !empty($page->conf['display']->content)) {
+      if (empty($page->disabled) && !empty($page->conf['display']->content)) {
         foreach ($page->conf['display']->content as $pid => $pane) {
           if (in_array($pane->type, array('panels_ajax_tab_tabs', 'highwire_panel_tabs'))) {
             $config[$pid] = $pane->configuration;
@@ -449,10 +455,8 @@ function panels_ajax_tab_get_config() {
   // THIS GOES IN AN ALTER HOOK
   $old_settings = variable_get('panels_ajax_tab', array('clean_url' => FALSE, 'clean_url_delim' => '/', 'panes' => array()));
   foreach ($config as &$conf) {
-    if ($conf['plugin_type'] == 'highwire_panel_tabs') {
-      if (!isset($conf['highwire_panel_tab'])) {
-        $conf['highwire_panel_tab'] = $old_settings['highwire_panel_tab'];
-      }
+    if (!isset($conf['highwire_panel_tab']) && !empty($old_settings['highwire_panel_tab'])) {
+      $conf['highwire_panel_tab'] = $old_settings['highwire_panel_tab'];
     }
   }
 

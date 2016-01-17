@@ -381,8 +381,8 @@ function panels_ajax_tab_get_config() {
       if (!empty($panel->display->content)) {
         foreach ($panel->display->content as $pid => $pane) {
           if (in_array($pane->type, array('panels_ajax_tab_tabs', 'highwire_panel_tabs'))) {
-            $config[$pid] = $pane->configuration;
-            $config[$pid]['plugin_type'] = $pane->type;
+            $pane->configuration['plugin_type'] = $pane->type;
+            $config[] = $pane->configuration;
           }
         }
       }
@@ -422,7 +422,8 @@ function panels_ajax_tab_get_config() {
       if (empty($page->disabled) && !empty($page->conf['display']->content)) {
         foreach ($page->conf['display']->content as $pid => $pane) {
           if (in_array($pane->type, array('panels_ajax_tab_tabs', 'highwire_panel_tabs'))) {
-            $config[$pid] = $pane->configuration;
+            $pane->configuration['plugin_type'] = $pane->type;
+            $config[] = $pane->configuration;
           }
         }
       }

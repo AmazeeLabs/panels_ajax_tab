@@ -79,10 +79,10 @@ function panels_ajax_tab_boot() {
       foreach ($config['mini_panels'] as $panel_id => $panel_conf) {
         $delim = $config['clean_url_delim'];
         $trigger = $delim . $panel_conf['url_id'];
-
+        
         $pathlen = strlen($_GET['q']);
         $triggerlen = strlen($trigger);
-
+        
         if ($triggerlen > $pathlen) continue;
 
         if (substr_compare($_GET['q'], $trigger, -$triggerlen) === 0) {
@@ -111,9 +111,18 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 }
 
 /**
- * AHAH call-back for preview
+ * AJAX call-back for rendering tab
  */
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
+  // Modify the request so downstream modules properlly process the URL and menu object
+  $headers = getallheaders();
+  if (!empty($headers['X-Request-Path'])) {
+    $_GET['original_q'] = $_GET['q'];
+    $_GET['q'] = ltrim($headers['X-Request-Path'], '/');
+    panels_ajax_tab_boot();
+    $_GET['q'] = drupal_get_normal_path($_GET['q']);
+  }
+
   $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
 
   $output = theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
@@ -208,11 +217,11 @@ function theme_panels_ajax_tab_container($vars) {
 function theme_panels_ajax_tab_ajax($vars) {
   // Grab all CSS for later comparison before clearing it
   $previous_css = drupal_add_css();
-
+  
   // Clear the JavaScript & CSS not related to the pane being rendered.
   drupal_static_reset('drupal_add_js');
   drupal_static_reset('drupal_add_css');
-
+  
   // Render the pane
   $mini = $vars['minipanel'];
   $layout = panels_get_layout($mini->display->layout);
@@ -233,7 +242,7 @@ function theme_panels_ajax_tab_ajax($vars) {
       $css[$key] = $item;
     }
   }
-
+  
   // Iterate through previous CSS stylesheets, and add any with matching basenames to allow
   // for proper overrides when calling drupal_get_css($css)
   foreach ($previous_css as $key => $item) {
@@ -245,12 +254,12 @@ function theme_panels_ajax_tab_ajax($vars) {
       foreach ($css as $key2 => $item2) {
         // Make sure to append previous stylesheets with matching basenames to the new CSS array
         if ($item['basename'] == $item2['basename']) {
-          $css[$key] = $previous_css[$key];
-        }
-      }
+          $css[$key] = $previous_css[$key];    
+        }  
+      }      
     }
-  }
-
+  }  
+   
   $output  = '';
   $output .= '<?xml version="1.0" encoding="UTF-8" ?>';
   $output .= '
@@ -356,8 +365,8 @@ function panels_ajax_tab_cron() {
 
 /**
  * Rebuild the URL cache
- *
- * URL suffix information is needed on boot, but it cannot be generated at boot time, so we generate it seperately and store
+ * 
+ * URL suffix information is needed on boot, but it cannot be generated at boot time, so we generate it seperately and store 
  * it in a cache item.
  */
 function panels_ajax_tab_config_cache() {
@@ -368,7 +377,7 @@ function panels_ajax_tab_config_cache() {
 
 /**
  * Get a list of all panels-ajax-tab configs
- *
+ * 
  * This is used to build a list url suffixes to process at boot if so enabled
  */
 function panels_ajax_tab_get_config() {
@@ -398,7 +407,7 @@ function panels_ajax_tab_get_config() {
 
     $tasks = page_manager_get_tasks_by_type('page');
     $pages = array();
-
+    
     foreach ($tasks as $task) {
       if ($task_pages = page_manager_load_task_handlers($task)) {
         $pages = array_merge($pages, $task_pages);
@@ -410,7 +419,7 @@ function panels_ajax_tab_get_config() {
         }
       }
     }
-
+     
     // Not all display objects are loaded, make sure to load them
     foreach ($pages as &$page) {
       if (empty($page->conf['display']) && !empty($page->conf['did'])) {
@@ -462,23 +471,4 @@ function panels_ajax_tab_get_config() {
   }
 
   return $config;
-}
-
-/**
- * If we are running nginx we need to implement getallheaders our self.
- *
- * Code is taken from http://php.net/manual/en/function.getallheaders.php
- */
-if (!function_exists('getallheaders')) {
-  /**
-   * Fetch all HTTP request headers.
-   */
-  function getallheaders() {
-    foreach ($_SERVER as $name => $value) {
-      if (substr($name, 0, 5) == 'HTTP_') {
-        $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
-      }
-    }
-    return $headers;
-  }
 }

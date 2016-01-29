@@ -111,10 +111,10 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 }
 
 /**
- * AJAX call-back for rendering tab
+ * AJAX callback for rendering tab
  */
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
-  // Modify the request so downstream modules properlly process the URL and menu object
+  // Modify the request so downstream modules properly process the URL and menu object
   $headers = getallheaders();
   if (!empty($headers['X-Request-Path'])) {
     $_GET['original_q'] = $_GET['q'];
@@ -123,10 +123,11 @@ function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
     $_GET['q'] = drupal_get_normal_path($_GET['q']);
   }
 
+  // Load the mini panel
   $mini = panels_ajax_tab_prepare_mini($panel_name, $context_string);
 
+  // Render the output
   $output = theme('panels_ajax_tab_ajax', array('minipanel' => $mini, 'url_enabled' => $url_enabled));
-
   $response = array();
   $response['markup'] = $output;
 

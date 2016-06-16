@@ -103,9 +103,8 @@ function panels_ajax_tab_boot() {
  */
 function panels_ajax_tab_element_info_alter(&$element_info) {
   if (arg(0) == 'panels_ajax_tab') {
-    $headers = getallheaders();
-    if (!empty($headers['X-Request-Path'])) {
-      $element_info['form']['#action'] = $headers['X-Request-Path'];
+    if (!empty($_SERVER['HTTP_X_REQUEST_PATH'])) {
+      $element_info['form']['#action'] = $_SERVER['HTTP_X_REQUEST_PATH'];
     }
   }
 }
@@ -116,9 +115,9 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   // Modify the request so downstream modules properly process the URL and menu object
   $headers = getallheaders();
-  if (!empty($headers['X-Request-Path'])) {
+  if (empty($_SERVER['HTTP_X_REQUEST_PATH'])) {
     $_GET['original_q'] = $_GET['q'];
-    $_GET['q'] = ltrim($headers['X-Request-Path'], '/');
+    $_GET['q'] = ltrim($_SERVER['HTTP_X_REQUEST_PATH'], '/');
     panels_ajax_tab_boot();
     $_GET['q'] = drupal_get_normal_path($_GET['q']);
   }

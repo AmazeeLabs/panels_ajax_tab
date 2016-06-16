@@ -64,14 +64,9 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
     if ($panel_conf['selected']) {
 
       // Set the URL ID - note the first one never has one regardless of what has been set
-      if ($i) {
-        $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $panel_name;
-        $url_base = drupal_is_front_page() ? base_path() . variable_get('site_frontpage') : url($_GET['q']);
-      }
-      else {
-        $url_id = '';
-        $url_base = drupal_is_front_page() ? base_path() : url($_GET['q']);
-      }
+
+      $url_id = $panel_conf['url_id'] ? $panel_conf['url_id'] : $panel_name;
+      $url_base = drupal_is_front_page() ? base_path() . variable_get('site_frontpage') : url($_GET['q']);
 
       if (!$url_id || !$conf['url_enabled']) {
         $href = $conf['clean_url'] ? $url_base : '';

@@ -33,26 +33,6 @@
             })
             .css('cursor', 'pointer')
             .addClass('panels-ajax-tabs-processed');
-  
-        // Trigger a click event on the first tab to load it
-        $('.pane-panels-ajax-tab-tabs', context).each(function() {
-          var tabs = $('.panels-ajax-tab-tab:not(.panels-ajax-tabs-first-loaded)', this);
-          var firstTab = tabs.first();
-          var target_id = firstTab.data('target-id');
-          var preloaded = $('#panels-ajax-tab-container-' + target_id).data('panels-ajax-tab-preloaded');
-          var currentTab;
-          
-          if (preloaded === '') {
-            currentTab = firstTab;
-            firstTab.trigger('click');
-          }
-          else {
-            currentTab = tabs.filter('*[data-panel-name="' + preloaded + '"]');
-          }
-          
-          currentTab.addClass('panels-ajax-tabs-first-loaded');
-          currentTab.parent().addClass('active');
-        });  
       });
     }
   };

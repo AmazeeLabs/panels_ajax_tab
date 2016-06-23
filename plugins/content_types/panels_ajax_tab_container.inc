@@ -75,7 +75,8 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   $content = '<div class="panels-ajax-tab-loading" style ="display:none">' . theme('image', $loading_img) . '</div>';
   $preloaded = '';
   if (!empty($tab_config)) {
-    $preloaded = reset(array_keys($tab_config['mini_panels']));
+    $mini_panels = array_keys($tab_config['mini_panels']);
+    $preloaded = reset($mini_panels);
     if ($tab_config['clean_url'] && isset($_GET['panels_ajax_tab_tab'])) {
       if (!empty($tab_config['mini_panels'][$_GET['panels_ajax_tab_tab']])) {
         $preloaded = $_GET['panels_ajax_tab_tab'];

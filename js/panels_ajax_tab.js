@@ -104,7 +104,7 @@
         else {
           // Do AJAX request
           $.ajax({
-            url: Drupal.settings.basePath + 'panels_ajax_tab/' + panel_name + '/' + entity_context + '/' + url_enabled + '?panels_ajax_tab_trigger=' + trigger,
+            url: Drupal.settings.basePath + Drupal.settings.pathPrefix + 'panels_ajax_tab/' + panel_name + '/' + entity_context + '/' + url_enabled + '?panels_ajax_tab_trigger=' + trigger,
             datatype: 'html',
             headers: {"X-Request-Path": document.location.pathname},
             cache: true,

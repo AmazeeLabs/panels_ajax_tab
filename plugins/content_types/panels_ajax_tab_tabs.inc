@@ -81,7 +81,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
       $mini = panels_mini_load($panel_name);
       $tabs[] = array(
         'mini_panel' => $mini,
-        'title' => $panel_conf['tab_title'] ? $panel_conf['tab_title'] : $mini->admin_title,
+        'title' => t($panel_conf['tab_title'] ? $panel_conf['tab_title'] : $mini->admin_title),
         'url_id' => $url_id,
         'url_enabled' => $conf['url_enabled'],
         'href' => $href

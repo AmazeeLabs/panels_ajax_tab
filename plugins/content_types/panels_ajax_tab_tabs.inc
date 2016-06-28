@@ -92,7 +92,7 @@ function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
   }
   
   // Render the tabs
-  $block->content .= theme('panels_ajax_tab_tabs', array('tabs' => $tabs, 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string, 'clean_url' => $conf['clean_url']));
+  $block->content .= theme('panels_ajax_tab_tabs', array('tabs' => $tabs, 'first_active' => $conf['first_active'], 'tab_container_id' => $conf['container_id'], 'context_string' => $context_string, 'clean_url' => $conf['clean_url']));
 
   return $block;
 }
@@ -180,6 +180,13 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
     '#required' => TRUE,
   );
 
+  $form['first_active'] = array(
+    '#title' => t('Select first on load'),
+    '#type' => 'checkbox',
+    '#description' => 'Render the first tab as active on load.',
+    '#default_value' => $conf['first_active'],
+  );
+
   $form['container_id'] = array(
     '#title' => t('Container ID'),
     '#type' => 'textfield',
@@ -228,6 +235,7 @@ function panels_ajax_tab_tabs_edit_form($form, &$form_state) {
 function panels_ajax_tab_tabs_edit_form_submit(&$form, &$form_state) {
   $form_state['conf']['mini_panels']     = $form_state['values']['mini_panels'];
   $form_state['conf']['container_id']    = $form_state['values']['container_id'];
+  $form_state['conf']['first_active']    = $form_state['values']['first_active'];
   $form_state['conf']['url_enabled']     = $form_state['values']['url_enabled'];
   $form_state['conf']['clean_url']       = $form_state['values']['clean_url'];
   $form_state['conf']['clean_url_delim'] = $form_state['values']['clean_url_delim'];

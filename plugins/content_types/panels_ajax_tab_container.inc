@@ -75,18 +75,25 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   $content = '<div class="panels-ajax-tab-loading" style ="display:none">' . theme('image', $loading_img) . '</div>';
   $preloaded = '';
   if (!empty($tab_config)) {
-    $mini_panels = array_keys($tab_config['mini_panels']);
-    $preloaded = reset($mini_panels);
     if ($tab_config['clean_url'] && isset($_GET['panels_ajax_tab_tab'])) {
       if (!empty($tab_config['mini_panels'][$_GET['panels_ajax_tab_tab']])) {
         $preloaded = $_GET['panels_ajax_tab_tab'];
       }
     }
 
-    $mini = panels_mini_load($preloaded);
-    $mini = panels_ajax_tab_prepare_mini($mini, $context_string);
-    $layout = panels_get_layout($mini->display->layout);
-    $content .= '<div class="panels-ajax-tab-wrap-' . $preloaded . '">' . panels_render_display($mini->display) . '</div>';
+    if (empty($preloaded) && !empty($tab_config['first_active'])) {
+      $mini_panels = array_keys($tab_config['mini_panels']);
+      $preloaded = reset($mini_panels);
+    }
+
+    $rendered = '';
+    if (!empty($preloaded)) {
+      $mini = panels_mini_load($preloaded);
+      $mini = panels_ajax_tab_prepare_mini($mini, $context_string);
+      $rendered = panels_render_display($mini->display);
+    }
+
+    $content .= '<div class="panels-ajax-tab-wrap-' . $preloaded . '">' . $rendered . '</div>';
   }
 
   // Render the container

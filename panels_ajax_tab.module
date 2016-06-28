@@ -41,7 +41,7 @@ function panels_ajax_tab_menu() {
 function panels_ajax_tab_theme($existing, $type, $theme, $path) {
   return array(
     'panels_ajax_tab_tabs' => array(
-      'variables' => array('tabs' => array(), 'tab_container_id' => NULL, 'context_string' => NULL, 'clean_url' => FALSE, 'clean_url_delim' => '/'),
+      'variables' => array('tabs' => array(), 'first_active' => NULL, 'tab_container_id' => NULL, 'context_string' => NULL, 'clean_url' => FALSE, 'clean_url_delim' => '/'),
     ),
     'panels_ajax_tab_container' => array(
       'variables' => array('tab_container_id' => NULL, 'preloaded' => '', 'content' => ''),

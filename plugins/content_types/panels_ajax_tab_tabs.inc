@@ -21,6 +21,8 @@ $plugin = array(
 );
 
 function panels_ajax_tab_tabs_render($subtype, $conf, $panel_args, &$contexts) {
+  $conf['first_active'] = isset($conf['first_active']) ? $conf['first_active'] : FALSE;
+
   ctools_include('context');
   ctools_include('plugins', 'panels');
   $block = new stdClass();

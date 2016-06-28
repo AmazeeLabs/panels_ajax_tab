@@ -62,6 +62,7 @@ function panels_ajax_tab_container_render($subtype, $conf, $panel_args, &$contex
   foreach ($configs as $config) {
     if ($config['container_id'] == $tab_container_id) {
       $tab_config = $config;
+      $tab_config['first_active'] = isset($tab_config['first_active']) ? $tab_config['first_active'] : FALSE;
       break;
     }
   }

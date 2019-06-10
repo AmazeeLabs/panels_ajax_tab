@@ -114,7 +114,7 @@ function panels_ajax_tab_element_info_alter(&$element_info) {
  */
 function panels_ajax_tab_ajax($panel_name, $context_string, $url_enabled) {
   // Modify the request so downstream modules properly process the URL and menu object
-  if (empty($_SERVER['HTTP_X_REQUEST_PATH'])) {
+  if (!empty($_SERVER['HTTP_X_REQUEST_PATH'])) {
     $_GET['original_q'] = $_GET['q'];
     $_GET['q'] = ltrim($_SERVER['HTTP_X_REQUEST_PATH'], '/');
     panels_ajax_tab_boot();
